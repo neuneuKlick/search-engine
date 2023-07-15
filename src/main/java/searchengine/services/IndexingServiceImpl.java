@@ -9,9 +9,15 @@ import searchengine.model.SiteModel;
 import searchengine.model.SiteStatus;
 import searchengine.repositories.SiteRepository;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.FutureTask;
 
 @Service
 @RequiredArgsConstructor
@@ -45,9 +51,20 @@ public class IndexingServiceImpl implements IndexingService {
     }
 
     private void executeIndexing(List<Site> siteList, ForkJoinPool forkJoinPool) {
+
         siteRepository.deleteAll();
+        String siteTree;
         for (Site site : siteList) {
+
             SiteModel siteModel = getSiteModel(site, SiteStatus.INDEXING);
+
+            Runnable task = () -> {
+                ParsingSite parsingSite = getContentSite(siteModel);
+                forkJoinPool.invoke(parsingSite);
+            };
+
+            Thread thread = new Thread(task);
+            thread.start();
         }
     }
 
@@ -63,4 +80,12 @@ public class IndexingServiceImpl implements IndexingService {
 
         return siteModel;
     }
+
+    public ParsingSite getContentSite(SiteModel siteModel) {
+        ParsingSite parsingSite = new ParsingSite(siteModel.getUrl());
+
+
+        return parsingSite;
+    }
+
 }
