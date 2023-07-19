@@ -5,19 +5,15 @@ import org.springframework.stereotype.Service;
 import searchengine.config.Site;
 import searchengine.config.SitesList;
 import searchengine.dto.statistics.IndexingResponse;
+import searchengine.model.PageModel;
 import searchengine.model.SiteModel;
 import searchengine.model.SiteStatus;
+import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.FutureTask;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +21,7 @@ public class IndexingServiceImpl implements IndexingService {
 
     private final SitesList sitesList;
     private final SiteRepository siteRepository;
+    private final PageRepository pageRepository;
 
     @Override
     public IndexingResponse startIndexing() {
@@ -53,10 +50,10 @@ public class IndexingServiceImpl implements IndexingService {
     private void executeIndexing(List<Site> siteList, ForkJoinPool forkJoinPool) {
 
         siteRepository.deleteAll();
-        String siteTree;
         for (Site site : siteList) {
 
             SiteModel siteModel = getSiteModel(site, SiteStatus.INDEXING);
+
 
             Runnable task = () -> {
                 ParsingSite parsingSite = getContentSite(siteModel);
@@ -68,7 +65,7 @@ public class IndexingServiceImpl implements IndexingService {
         }
     }
 
-    public SiteModel getSiteModel(Site site, SiteStatus siteStatus) {
+    private SiteModel getSiteModel(Site site, SiteStatus siteStatus) {
 
         SiteModel siteModel = new SiteModel();
         siteModel.setSiteStatus(siteStatus);
@@ -87,5 +84,7 @@ public class IndexingServiceImpl implements IndexingService {
 
         return parsingSite;
     }
+
+
 
 }

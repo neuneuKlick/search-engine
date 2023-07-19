@@ -16,7 +16,7 @@ public class PageModel {
     private long id;
     @JoinColumn(name = "site_id", nullable = false)
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private SiteModel siteId;
+    private SiteModel siteModel;
     @Column(nullable = false, columnDefinition = "VARCHAR(255)")
     private String path;
     @Column(name = "code", nullable = false)
