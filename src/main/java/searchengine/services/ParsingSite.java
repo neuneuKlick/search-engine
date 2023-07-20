@@ -20,10 +20,14 @@ public class ParsingSite extends RecursiveTask<String> {
 
     private String url;
     private static CopyOnWriteArrayList<String> urlList = new CopyOnWriteArrayList<>();
+    private final SiteModel siteModel;
+    private final PageRepository pageRepository;
 
 
-    public ParsingSite(String url) {
+    public ParsingSite(String url, SiteModel siteModel, PageRepository pageRepository) {
         this.url = url;
+        this.siteModel = siteModel;
+        this.pageRepository = pageRepository;
     }
 
     @Override
@@ -40,14 +44,14 @@ public class ParsingSite extends RecursiveTask<String> {
             Thread.sleep(150);
             Document document = Jsoup.connect(url).ignoreContentType(true).get();
 
-//            PageModel pageModel = getContentPage(url, document);
+            PageModel pageModel = getContentPage(url, document);
 
             Elements elements = document.select("a[href]");
             for (Element element : elements) {
                 String attrUrl = element.absUrl("href");
                 if (!attrUrl.isEmpty() && attrUrl.startsWith(url) && !urlList.contains(attrUrl) && !attrUrl.contains("#") && attrUrl.endsWith("/") ) {
                     urlList.add(attrUrl);
-                    ParsingSite task = new ParsingSite(attrUrl);
+                    ParsingSite task = new ParsingSite(attrUrl, siteModel, pageRepository);
                     task.fork();
                     taskList.add(task);
                 }
@@ -69,8 +73,9 @@ public class ParsingSite extends RecursiveTask<String> {
         pageModel.setPath(url.substring(siteModel.getUrl().length()));
         pageModel.setCodeResponse(200);
         pageModel.setContent(document.outerHtml());
+        pageModel.setId(siteModel.getId());
 
-        pageRepository.saveAndFlush(pageModel);
+        pageRepository.save(pageModel);
 
         return pageModel;
     }

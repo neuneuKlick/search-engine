@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 import searchengine.config.Site;
 import searchengine.config.SitesList;
 import searchengine.dto.statistics.IndexingResponse;
-import searchengine.model.PageModel;
 import searchengine.model.SiteModel;
 import searchengine.model.SiteStatus;
 import searchengine.repositories.PageRepository;
@@ -73,13 +72,13 @@ public class IndexingServiceImpl implements IndexingService {
         siteModel.setUrl(site.getUrl());
         siteModel.setName(site.getName());
 
-        siteRepository.save(siteModel);
+        siteRepository.saveAndFlush(siteModel);
 
         return siteModel;
     }
 
     public ParsingSite getContentSite(SiteModel siteModel) {
-        ParsingSite parsingSite = new ParsingSite(siteModel.getUrl());
+        ParsingSite parsingSite = new ParsingSite(siteModel.getUrl(), siteModel, pageRepository);
 
 
         return parsingSite;
