@@ -52,12 +52,13 @@ public class ParsingSite extends RecursiveTask<String> {
                 if (!attrUrl.isEmpty() && attrUrl.startsWith(url) && !urlList.contains(attrUrl) && !attrUrl.contains("#") && attrUrl.endsWith("/") ) {
                     urlList.add(attrUrl);
                     ParsingSite task = new ParsingSite(attrUrl, siteModel, pageRepository);
-                    task.fork();
                     taskList.add(task);
+                    task.fork();
                 }
             }
             for (ParsingSite task : taskList) {
                 stringBuffer.append(task.join());
+
             }
 
         } catch (IOException | InterruptedException e) {
@@ -73,9 +74,8 @@ public class ParsingSite extends RecursiveTask<String> {
         pageModel.setPath(url.substring(siteModel.getUrl().length()));
         pageModel.setCodeResponse(200);
         pageModel.setContent(document.outerHtml());
-        pageModel.setId(siteModel.getId());
 
-        pageRepository.save(pageModel);
+        pageRepository.saveAndFlush(pageModel);
 
         return pageModel;
     }
