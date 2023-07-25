@@ -51,12 +51,16 @@ public class IndexingServiceImpl implements IndexingService {
         siteRepository.deleteAll();
         for (Site site : siteList) {
 
-            SiteModel siteModel = getSiteModel(site, SiteStatus.INDEXING);
+            SiteModel siteModel = getSiteModel(site);
 
 
             Runnable task = () -> {
                 ParsingSite parsingSite = getContentSite(siteModel);
                 forkJoinPool.invoke(parsingSite);
+
+                if (forkJoinPool.submit(parsingSite).isDone()) {
+                    changeSiteModel(siteModel);
+                }
             };
 
             Thread thread = new Thread(task);
@@ -64,10 +68,10 @@ public class IndexingServiceImpl implements IndexingService {
         }
     }
 
-    private SiteModel getSiteModel(Site site, SiteStatus siteStatus) {
+    private SiteModel getSiteModel(Site site) {
 
         SiteModel siteModel = new SiteModel();
-        siteModel.setSiteStatus(siteStatus);
+        siteModel.setSiteStatus(SiteStatus.INDEXING);
         siteModel.setTimeStatus(LocalDateTime.now());
         siteModel.setUrl(site.getUrl());
         siteModel.setName(site.getName());
@@ -82,6 +86,14 @@ public class IndexingServiceImpl implements IndexingService {
 
 
         return parsingSite;
+    }
+
+    private void changeSiteModel(SiteModel siteModel) {
+
+        siteModel.setSiteStatus(SiteStatus.INDEXED);
+        siteModel.setTimeStatus(LocalDateTime.now());
+
+        siteRepository.saveAndFlush(siteModel);
     }
 
 

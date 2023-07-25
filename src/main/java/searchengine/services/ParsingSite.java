@@ -19,7 +19,7 @@ import java.util.concurrent.RecursiveTask;
 public class ParsingSite extends RecursiveTask<String> {
 
     private String url;
-    private static CopyOnWriteArrayList<String> urlList = new CopyOnWriteArrayList<>();
+    private final static CopyOnWriteArrayList<String> urlList = new CopyOnWriteArrayList<>();
     private final SiteModel siteModel;
     private final PageRepository pageRepository;
 
@@ -58,7 +58,6 @@ public class ParsingSite extends RecursiveTask<String> {
             }
             for (ParsingSite task : taskList) {
                 stringBuffer.append(task.join());
-
             }
 
         } catch (IOException | InterruptedException e) {
