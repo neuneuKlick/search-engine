@@ -11,6 +11,7 @@ import searchengine.model.SiteModel;
 import searchengine.repositories.PageRepository;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.RecursiveTask;
@@ -60,8 +61,12 @@ public class ParsingSite extends RecursiveTask<String> {
                 stringBuffer.append(task.join());
             }
 
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
+        } catch (InterruptedException interruptedException) {
+            log.info("Interrupted Exception");
+        } catch (MalformedURLException malformedURLException) {
+            log.info("Malformed URL Exception");
+        } catch (IOException ioException) {
+            log.info("Input Output Exception");
         }
 
         return stringBuffer.toString();
