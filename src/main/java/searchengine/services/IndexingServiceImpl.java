@@ -13,6 +13,7 @@ import searchengine.repositories.SiteRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.FutureTask;
 
 @Service
 @RequiredArgsConstructor
@@ -21,18 +22,21 @@ public class IndexingServiceImpl implements IndexingService {
     private final SitesList sitesList;
     private final SiteRepository siteRepository;
     private final PageRepository pageRepository;
+    public static boolean isIndexed;
+    public static boolean isInterrupted;
 
     @Override
     public IndexingResponse startIndexing() {
 
-        if (isIndexing()) {
+        if (isIndexed()) {
             return new IndexingResponse(false, "Indexing is already running");
         }
-
         List<Site> siteList = sitesList.getSites();
 
-        ForkJoinPool forkJoinPool = new ForkJoinPool();
-        executeIndexing(siteList, forkJoinPool);
+        isIndexed();
+        isInterrupted();
+
+        executeIndexing(siteList);
 
         return new IndexingResponse(true, "");
     }
@@ -42,23 +46,26 @@ public class IndexingServiceImpl implements IndexingService {
         return new IndexingResponse(true, "");
     }
 
-    private boolean isIndexing() {
-        return false;
-    }
+    private void executeIndexing(List<Site> siteList) {
 
-    private void executeIndexing(List<Site> siteList, ForkJoinPool forkJoinPool) {
+        cleaningData();
 
-        siteRepository.deleteAll();
+        ForkJoinPool fjp = new ForkJoinPool();
+
         for (Site site : siteList) {
 
             SiteModel siteModel = getSiteModel(site);
 
-
             Runnable task = () -> {
-                ParsingSite parsingSite = getContentSite(siteModel);
-                forkJoinPool.invoke(parsingSite);
 
-                if (forkJoinPool.submit(parsingSite).isDone()) {
+                ParsingSite parsingSite = getContentSite(siteModel);
+
+                fjp.invoke(parsingSite);
+
+                if (fjp.submit(parsingSite).isDone()) {
+
+                    isIsIndexedStopped();
+
                     changeSiteModel(siteModel);
                 }
             };
@@ -81,11 +88,9 @@ public class IndexingServiceImpl implements IndexingService {
         return siteModel;
     }
 
-    public ParsingSite getContentSite(SiteModel siteModel) {
-        ParsingSite parsingSite = new ParsingSite(siteModel.getUrl(), siteModel, pageRepository);
+    private ParsingSite getContentSite(SiteModel siteModel) {
 
-
-        return parsingSite;
+        return new ParsingSite(siteModel.getUrl(), siteModel, pageRepository);
     }
 
     private void changeSiteModel(SiteModel siteModel) {
@@ -96,6 +101,21 @@ public class IndexingServiceImpl implements IndexingService {
         siteRepository.saveAndFlush(siteModel);
     }
 
+    private static boolean isIndexed() {
+        return isIndexed = true;
+    }
 
+    private static boolean isIsIndexedStopped() {
+        return isIndexed = false;
+    }
+
+    private static boolean isInterrupted() {
+        return isInterrupted = false;
+    }
+
+    private void cleaningData() {
+        siteRepository.deleteAllInBatch();
+        pageRepository.deleteAllInBatch();
+    }
 
 }

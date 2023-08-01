@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveTask;
 
 @Slf4j
@@ -45,8 +46,6 @@ public class ParsingSite extends RecursiveTask<String> {
             Thread.sleep(150);
             Document document = Jsoup.connect(url).ignoreContentType(true).get();
 
-            PageModel pageModel = getContentPage(url, document);
-
             Elements elements = document.select("a[href]");
             for (Element element : elements) {
                 String attrUrl = element.absUrl("href");
@@ -60,6 +59,7 @@ public class ParsingSite extends RecursiveTask<String> {
             for (ParsingSite task : taskList) {
                 stringBuffer.append(task.join());
             }
+            getContentPage(url, document);
 
         } catch (InterruptedException interruptedException) {
             log.info("Interrupted Exception");
