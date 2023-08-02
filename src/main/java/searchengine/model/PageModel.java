@@ -1,5 +1,6 @@
 package searchengine.model;
 
+import ch.qos.logback.classic.db.names.ColumnName;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.mapping.Set;
@@ -12,7 +13,7 @@ import javax.persistence.*;
 @Table(name = "page", indexes = @Index(columnList = "path", name = "index_path", unique = true))
 public class PageModel {
     @Id
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     @JoinColumn(name = "site_id", nullable = false)

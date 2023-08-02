@@ -16,5 +16,5 @@ spring:
 
 indexing-settings:
   sites:
-    - url: https://dombulgakova.ru
-      name: DomBulgakova
+    - url: https://nopaper.ru/
+      name: NoPaper

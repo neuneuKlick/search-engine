@@ -22,15 +22,15 @@ public class IndexingServiceImpl implements IndexingService {
     private final SitesList sitesList;
     private final SiteRepository siteRepository;
     private final PageRepository pageRepository;
-    public static boolean isIndexed;
+    public static boolean isIndexed = false;
     public static boolean isInterrupted;
 
     @Override
     public IndexingResponse startIndexing() {
 
-        if (isIndexed()) {
-            return new IndexingResponse(false, "Indexing is already running");
-        }
+//        if (isIndexed()) {
+//            return new IndexingResponse(false, "Indexing is already running");
+//        }
         List<Site> siteList = sitesList.getSites();
 
         isIndexed();
