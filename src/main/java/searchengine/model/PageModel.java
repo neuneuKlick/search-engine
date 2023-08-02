@@ -13,7 +13,7 @@ import javax.persistence.*;
 @Table(name = "page", indexes = @Index(columnList = "path", name = "index_path", unique = true))
 public class PageModel {
     @Id
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     @JoinColumn(name = "site_id", nullable = false)

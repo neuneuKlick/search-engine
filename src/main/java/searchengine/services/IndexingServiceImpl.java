@@ -13,7 +13,6 @@ import searchengine.repositories.SiteRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.FutureTask;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +21,7 @@ public class IndexingServiceImpl implements IndexingService {
     private final SitesList sitesList;
     private final SiteRepository siteRepository;
     private final PageRepository pageRepository;
+    private final NetworkService networkService;
     public static boolean isIndexed = false;
     public static boolean isInterrupted;
 
@@ -90,7 +90,7 @@ public class IndexingServiceImpl implements IndexingService {
 
     private ParsingSite getContentSite(SiteModel siteModel) {
 
-        return new ParsingSite(siteModel.getUrl(), siteModel, pageRepository);
+        return new ParsingSite(siteModel.getUrl(), siteModel, pageRepository, sitesList, networkService);
     }
 
     private void changeSiteModel(SiteModel siteModel) {
