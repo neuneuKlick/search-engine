@@ -49,6 +49,7 @@ public class IndexingServiceImpl implements IndexingService {
     private void executeIndexing(List<Site> siteList) {
 
         cleaningData();
+        ParsingSite.clearUrlList();
 
         ForkJoinPool fjp = new ForkJoinPool();
 
@@ -58,6 +59,7 @@ public class IndexingServiceImpl implements IndexingService {
 
             Runnable task = () -> {
 
+                //TODO Написать подобный класс StartExecutor чтобы в методе run() правильно передавать Network, ловить exception и делать проверки
                 ParsingSite parsingSite = getContentSite(siteModel);
 
                 fjp.invoke(parsingSite);

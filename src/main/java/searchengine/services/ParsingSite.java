@@ -98,4 +98,8 @@ public class ParsingSite extends RecursiveAction {
         return pageModel;
     }
 
+    public static void clearUrlList() {
+        urlList.clear();
+    }
+
 }
