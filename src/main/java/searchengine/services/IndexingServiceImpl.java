@@ -1,6 +1,7 @@
 package searchengine.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import searchengine.config.Site;
 import searchengine.config.SitesList;
@@ -10,12 +11,14 @@ import searchengine.model.SiteStatus;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 
+import java.net.MalformedURLException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class IndexingServiceImpl implements IndexingService {
 
     private final SitesList sitesList;
@@ -58,7 +61,7 @@ public class IndexingServiceImpl implements IndexingService {
             SiteModel siteModel = getSiteModel(site);
 
             Runnable task = () -> {
-
+                //TODO сделать проверку дубликатов
                 //TODO Написать подобный класс StartExecutor чтобы в методе run() правильно передавать Network, ловить exception и делать проверки
                 ParsingSite parsingSite = getContentSite(siteModel);
 

@@ -15,6 +15,7 @@ import searchengine.repositories.PageRepository;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.*;
 import java.util.regex.Pattern;
@@ -29,6 +30,7 @@ public class ParsingSite extends RecursiveAction {
     private static Pattern patternUrl;
     private final SitesList sitesList;
     private static NetworkService networkService;
+    private static Map<String, String> collectionsDuplicate = new ConcurrentHashMap<>();
 
     public ParsingSite(String url, SiteModel siteModel, PageRepository pageRepository, SitesList sitesList, NetworkService networkService) {
         this.url = url.trim();
@@ -60,9 +62,13 @@ public class ParsingSite extends RecursiveAction {
             Elements elements = doc.select("a");
 
             for (Element element : elements) {
+
                 String absUrl = element.absUrl("href").indexOf(0) == '/'
                         ? siteModel.getUrl() + element.absUrl("href")
                         : element.absUrl("href");
+                if(collectionsDuplicate.containsKey(absUrl)) {
+                    continue;
+                }
 
                 if (!absUrl.isEmpty()
                         && absUrl.startsWith(siteModel.getUrl())

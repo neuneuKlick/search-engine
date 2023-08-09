@@ -16,5 +16,5 @@ spring:
 
 indexing-settings:
   sites:
-    - url: https://nopaper.ru/
-      name: NoPaper
+    - url: http://www.playback.ru/
+      name: Playback
