@@ -76,9 +76,12 @@ public class ParsingSite extends RecursiveAction {
                         && !absUrl.contains("#")
                         && !patternUrl.matcher(absUrl).find()) {
 
-                    ParsingSite task = new ParsingSite(absUrl, siteModel, pageRepository, sitesList, networkService);
-                    taskList.add(task);
-                    task.fork();
+                    if (urlListValidate()) {
+                        addUrl();
+                        ParsingSite task = new ParsingSite(absUrl, siteModel, pageRepository, sitesList, networkService);
+                        taskList.add(task);
+                        task.fork();
+                    }
 
                 }
             }
