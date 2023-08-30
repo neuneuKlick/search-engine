@@ -19,7 +19,7 @@ public class PageModel {
     @JoinColumn(name = "site_id", nullable = false)
     @ManyToOne(cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
     private SiteModel siteModel;
-    @Column(nullable = false, columnDefinition = "VARCHAR(255)")
+    @Column(nullable = false, columnDefinition = "VARCHAR(255) CHARACTER SET utf8")
     private String path;
     @Column(name = "code", nullable = false)
     private int codeResponse;

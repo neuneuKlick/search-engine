@@ -12,9 +12,8 @@ spring:
         dialect: org.hibernate.dialect.MySQL8Dialect
     hibernate:
       ddl-auto: create
-    show-sql: true
 
 indexing-settings:
   sites:
-    - url: http://www.playback.ru/
-      name: Playback
+    - url: https://nopaper.ru/
+      name: nopaper.ru

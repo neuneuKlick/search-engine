@@ -12,9 +12,11 @@ import searchengine.config.SitesList;
 import searchengine.model.PageModel;
 import searchengine.model.SiteModel;
 import searchengine.repositories.PageRepository;
+import searchengine.repositories.SiteRepository;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.*;
@@ -23,22 +25,33 @@ import java.util.regex.Pattern;
 @Slf4j
 public class ParsingSite extends RecursiveAction {
 
-    private String url;
+    private static volatile Boolean enabled = false;
+    private final String url;
     private final static Set<String> urlList = ConcurrentHashMap.newKeySet();
     private final SiteModel siteModel;
     private final PageRepository pageRepository;
+    private final SiteRepository siteRepository;
+    private final ExecutorService executorService;
     private static Pattern patternUrl;
-    private final SitesList sitesList;
     private static NetworkService networkService;
     private static Map<String, String> collectionsDuplicate = new ConcurrentHashMap<>();
 
-    public ParsingSite(String url, SiteModel siteModel, PageRepository pageRepository, SitesList sitesList, NetworkService networkService) {
+    public ParsingSite(String url, SiteModel siteModel, PageRepository pageRepository, SiteRepository siteRepository, ExecutorService executorService) {
         this.url = url.trim();
         this.siteModel = siteModel;
         this.pageRepository = pageRepository;
-        this.sitesList = sitesList;
+        this.siteRepository = siteRepository;
+        this.executorService = executorService;
+    }
+
+    public ParsingSite(String url, SiteModel siteModel, NetworkService networkService, SiteRepository siteRepository, PageRepository pageRepository) {
+        this.url = url;
+        this.siteModel = siteModel;
+        this.siteRepository = siteRepository;
+        this.pageRepository = pageRepository;
+        this.executorService = Executors.newFixedThreadPool(16);
         ParsingSite.networkService = networkService;
-        patternUrl = Pattern.compile("(jpg)|(png)|(pdf)|(doc)");
+        patternUrl = Pattern.compile("(jpg)|(JPG)|(PNG)|(png)|(PDF)|(pdf)|(JPEG)|(jpeg)|(BMP)|(bmp)");
     }
 
     @Override
@@ -47,18 +60,29 @@ public class ParsingSite extends RecursiveAction {
         CopyOnWriteArrayList<ParsingSite> taskList = new CopyOnWriteArrayList<>();
 
         try {
-            log.info("log test");
-            System.out.println("Connection: " + url);
-            Thread.sleep(150);
-            Connection.Response response = networkService.getConnection(url);
+            if (enabled) {
+                StartExecuting.shutdown();
+                return;
+            }
 
-            if (!networkService.isAvailable(response) && !urlList.contains(url)) {
+            log.info("log test");
+            System.out.println("Connection: " + url);  // url = "https://nopaper.ru/"
+            Thread.sleep(1500);
+            Connection.Response response = networkService.getConnection(url);  // Подключаемся к сайту и получаем ответ в виде объекта
+
+            if (!networkService.isAvailable(response)) {
+                urlList.add(url);
+                return;
+            }
+            if (!addUrlList(url)) {
                 urlList.add(url);
                 return;
             }
 
             Document doc = response.parse();
+            updateTime(siteModel);
             addToPageTable(url, doc);
+
             Elements elements = doc.select("a");
 
             for (Element element : elements) {
@@ -76,23 +100,20 @@ public class ParsingSite extends RecursiveAction {
                         && !absUrl.contains("#")
                         && !patternUrl.matcher(absUrl).find()) {
 
-                    if (urlListValidate()) {
-                        addUrl();
-                        ParsingSite task = new ParsingSite(absUrl, siteModel, pageRepository, sitesList, networkService);
-                        taskList.add(task);
-                        task.fork();
-                    }
+//                    if (urlListValidate()) {
+//                        addUrl();
+                        ParsingSite parsingSite = new ParsingSite(absUrl, siteModel, pageRepository, siteRepository, executorService);
+                        taskList.add(parsingSite);
+                        parsingSite.fork();
+//                    }
 
                 }
             }
             taskList.forEach(ForkJoinTask::join);
 
-        } catch (InterruptedException interruptedException) {
-            log.info("Interrupted Exception");
-        } catch (MalformedURLException malformedURLException) {
-            log.info("Malformed URL Exception");
-        } catch (IOException ioException) {
-            log.info("Input Output Exception");
+        } catch (Exception exception) {
+            urlList.add(url);
+            log.debug("Ошибка подключения к сайту " + url + exception.getMessage());
         }
 
     }
@@ -109,6 +130,15 @@ public class ParsingSite extends RecursiveAction {
 
     public static void clearUrlList() {
         urlList.clear();
+    }
+
+    private void updateTime(SiteModel siteModel) {
+        siteModel.setTimeStatus(new Date());
+        siteRepository.saveAndFlush(siteModel);
+    }
+
+    private boolean addUrlList(String url) {
+        return urlList.add(url);
     }
 
 }

@@ -11,9 +11,11 @@ import searchengine.model.SiteStatus;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 
-import java.net.MalformedURLException;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 
 @Service
@@ -25,8 +27,9 @@ public class IndexingServiceImpl implements IndexingService {
     private final SiteRepository siteRepository;
     private final PageRepository pageRepository;
     private final NetworkService networkService;
+    private ForkJoinPool fjp = new ForkJoinPool();
     public static boolean isIndexed = false;
-    public static boolean isInterrupted;
+    private static boolean isInterrupted;
 
     @Override
     public IndexingResponse startIndexing() {
@@ -54,25 +57,14 @@ public class IndexingServiceImpl implements IndexingService {
         cleaningData();
         ParsingSite.clearUrlList();
 
-        ForkJoinPool fjp = new ForkJoinPool();
-
         for (Site site : siteList) {
 
             SiteModel siteModel = getSiteModel(site);
 
             Runnable task = () -> {
-                //TODO сделать проверку дубликатов
-                //TODO Написать подобный класс StartExecutor чтобы в методе run() правильно передавать Network, ловить exception и делать проверки
-                ParsingSite parsingSite = getContentSite(siteModel);
-
-                fjp.invoke(parsingSite);
-
-                if (fjp.submit(parsingSite).isDone()) {
-
-                    isIsIndexedStopped();
-
-                    changeSiteModel(siteModel);
-                }
+                StartExecuting startExecute = new StartExecuting(siteModel, networkService, siteRepository, pageRepository);
+                ExecutorService executorService = Executors.newSingleThreadExecutor();
+                executorService.submit(startExecute);
             };
 
             Thread thread = new Thread(task);
@@ -84,7 +76,7 @@ public class IndexingServiceImpl implements IndexingService {
 
         SiteModel siteModel = new SiteModel();
         siteModel.setSiteStatus(SiteStatus.INDEXING);
-        siteModel.setTimeStatus(LocalDateTime.now());
+        siteModel.setTimeStatus(new Date());
         siteModel.setUrl(site.getUrl());
         siteModel.setName(site.getName());
 
@@ -93,15 +85,15 @@ public class IndexingServiceImpl implements IndexingService {
         return siteModel;
     }
 
-    private ParsingSite getContentSite(SiteModel siteModel) {
-
-        return new ParsingSite(siteModel.getUrl(), siteModel, pageRepository, sitesList, networkService);
-    }
+//    private ParsingSite getContentSite(SiteModel siteModel) {
+//
+//        return new ParsingSite(siteModel.getUrl(), siteModel, pageRepository, sitesList, networkService);
+//    }
 
     private void changeSiteModel(SiteModel siteModel) {
 
         siteModel.setSiteStatus(SiteStatus.INDEXED);
-        siteModel.setTimeStatus(LocalDateTime.now());
+        siteModel.setTimeStatus(new Date());
 
         siteRepository.saveAndFlush(siteModel);
     }

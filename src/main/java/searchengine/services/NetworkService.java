@@ -20,7 +20,7 @@ public class NetworkService {
                 .ignoreContentType(true)
                 .userAgent("SearchBotFix/2.0")
                 .referrer("https://google.com")
-                .timeout(3000)
+                .timeout(15000)
                 .followRedirects(false)
                 .execute();
     }

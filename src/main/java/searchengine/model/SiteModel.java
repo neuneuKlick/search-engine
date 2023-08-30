@@ -5,6 +5,7 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Entity
 @Getter
@@ -19,7 +20,7 @@ public class SiteModel {
     @Column(name = "status", nullable = false, columnDefinition = "ENUM ('INDEXED', 'INDEXING', 'FAILED')")
     private SiteStatus siteStatus;
     @Column(name = "status_time", nullable = false, columnDefinition = "DATETIME")
-    private LocalDateTime timeStatus;
+    private Date timeStatus;
     @Column(name = "last_error", columnDefinition = "TEXT")
     private String lastError;
     @Column(nullable = false, columnDefinition = "VARCHAR(255)")
