@@ -31,17 +31,20 @@ public class StartExecuting implements Runnable {
 
     @Override
     public void run() {
+        try {
+            long startTime = System.currentTimeMillis();
+            ParsingSite parsingSite = new ParsingSite(siteModel.getUrl(), siteModel, networkService, siteRepository, pageRepository);
+            fjp.invoke(parsingSite);
 
-        long startTime = System.currentTimeMillis();
-        ParsingSite parsingSite = new ParsingSite(siteModel.getUrl(), siteModel, networkService, siteRepository, pageRepository);
-        fjp.invoke(parsingSite);
-
-        if (!fjp.isShutdown()) {
-            siteIndexed();
-            log.info("Индексация сайта " + siteModel.getName() + " завершена, за время: " + (System.currentTimeMillis() - startTime));
+            if (!fjp.isShutdown()) {
+                siteIndexed();
+                log.info("Site indexing " + siteModel.getName() + " is complected, in time: " + (System.currentTimeMillis() - startTime));
+            }
+        } catch (MalformedURLException m) {
+            log.info("Interrupted I/O operations " + m.getMessage());
+        } catch (IOException i) {
+            log.info("Error StartExecuting class " + i.getMessage());
         }
-
-
     }
 
     public static void shutdown() {

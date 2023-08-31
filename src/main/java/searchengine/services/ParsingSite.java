@@ -44,7 +44,7 @@ public class ParsingSite extends RecursiveAction {
         this.executorService = executorService;
     }
 
-    public ParsingSite(String url, SiteModel siteModel, NetworkService networkService, SiteRepository siteRepository, PageRepository pageRepository) {
+    public ParsingSite(String url, SiteModel siteModel, NetworkService networkService, SiteRepository siteRepository, PageRepository pageRepository) throws IOException{
         this.url = url;
         this.siteModel = siteModel;
         this.siteRepository = siteRepository;
@@ -66,9 +66,9 @@ public class ParsingSite extends RecursiveAction {
             }
 
             log.info("log test");
-            System.out.println("Connection: " + url);  // url = "https://nopaper.ru/"
+            System.out.println("Connection: " + url);
             Thread.sleep(1500);
-            Connection.Response response = networkService.getConnection(url);  // Подключаемся к сайту и получаем ответ в виде объекта
+            Connection.Response response = networkService.getConnection(url);
 
             if (!networkService.isAvailable(response)) {
                 urlList.add(url);
@@ -100,12 +100,9 @@ public class ParsingSite extends RecursiveAction {
                         && !absUrl.contains("#")
                         && !patternUrl.matcher(absUrl).find()) {
 
-//                    if (urlListValidate()) {
-//                        addUrl();
                         ParsingSite parsingSite = new ParsingSite(absUrl, siteModel, pageRepository, siteRepository, executorService);
                         taskList.add(parsingSite);
                         parsingSite.fork();
-//                    }
 
                 }
             }

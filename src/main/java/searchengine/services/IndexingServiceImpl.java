@@ -1,6 +1,7 @@
 package searchengine.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import searchengine.config.Site;
@@ -31,6 +32,7 @@ public class IndexingServiceImpl implements IndexingService {
     public static boolean isIndexed = false;
     private static boolean isInterrupted;
 
+    @SneakyThrows
     @Override
     public IndexingResponse startIndexing() {
 
@@ -83,19 +85,6 @@ public class IndexingServiceImpl implements IndexingService {
         siteRepository.saveAndFlush(siteModel);
 
         return siteModel;
-    }
-
-//    private ParsingSite getContentSite(SiteModel siteModel) {
-//
-//        return new ParsingSite(siteModel.getUrl(), siteModel, pageRepository, sitesList, networkService);
-//    }
-
-    private void changeSiteModel(SiteModel siteModel) {
-
-        siteModel.setSiteStatus(SiteStatus.INDEXED);
-        siteModel.setTimeStatus(new Date());
-
-        siteRepository.saveAndFlush(siteModel);
     }
 
     private static boolean isIndexed() {
