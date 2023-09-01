@@ -49,7 +49,7 @@ public class ParsingSite extends RecursiveAction {
         this.siteModel = siteModel;
         this.siteRepository = siteRepository;
         this.pageRepository = pageRepository;
-        this.executorService = Executors.newFixedThreadPool(16);
+        this.executorService = Executors.newFixedThreadPool(32);
         ParsingSite.networkService = networkService;
         patternUrl = Pattern.compile("(jpg)|(JPG)|(PNG)|(png)|(PDF)|(pdf)|(JPEG)|(jpeg)|(BMP)|(bmp)");
     }
@@ -60,10 +60,10 @@ public class ParsingSite extends RecursiveAction {
         CopyOnWriteArrayList<ParsingSite> taskList = new CopyOnWriteArrayList<>();
 
         try {
-            if (enabled) {
-                StartExecuting.shutdown();
-                return;
-            }
+//            if (enabled) {
+//                StartExecuting.shutdown();
+//                return;
+//            }
 
             log.info("log test");
             System.out.println("Connection: " + url);
@@ -80,8 +80,12 @@ public class ParsingSite extends RecursiveAction {
             }
 
             Document doc = response.parse();
+
             updateTime(siteModel);
             addToPageTable(url, doc);
+
+            //TODO Перед тем ,как разбирать doc на элементы, сделать проверку
+            //TODO И сделать проверку окончания парсинга
 
             Elements elements = doc.select("a");
 

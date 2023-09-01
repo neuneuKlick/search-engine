@@ -28,17 +28,16 @@ public class IndexingServiceImpl implements IndexingService {
     private final SiteRepository siteRepository;
     private final PageRepository pageRepository;
     private final NetworkService networkService;
-    private ForkJoinPool fjp = new ForkJoinPool();
-    public static boolean isIndexed = false;
-    private static boolean isInterrupted;
+    public static boolean isIndexed = true;
+    private static boolean isInterrupted = true;
 
     @SneakyThrows
     @Override
     public IndexingResponse startIndexing() {
 
-//        if (isIndexed()) {
-//            return new IndexingResponse(false, "Indexing is already running");
-//        }
+        if (!isIndexingStarted()) {
+            return new IndexingResponse(false, "Indexing is already running");
+        }
         List<Site> siteList = sitesList.getSites();
 
         isIndexed();
@@ -102,6 +101,10 @@ public class IndexingServiceImpl implements IndexingService {
     private void cleaningData() {
         siteRepository.deleteAllInBatch();
         pageRepository.deleteAllInBatch();
+    }
+
+    public boolean isIndexingStarted() {
+        return isIndexed;
     }
 
 }
