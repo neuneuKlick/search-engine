@@ -18,16 +18,16 @@ public class NetworkService {
     public Connection.Response getConnection(String url) throws IOException {
         return Jsoup.connect(url)
                 .ignoreContentType(true)
-                .userAgent("SearchBotFix/2.0")
-                .referrer("https://google.com")
-                .timeout(15000)
+                .userAgent(sitesList.getName())
+                .referrer(sitesList.getReferer())
+                .timeout(sitesList.getTimeout())
                 .followRedirects(false)
                 .execute();
     }
 
     public boolean isAvailable(Connection.Response response) {
         return ((response != null)
-                && ((response.contentType().equalsIgnoreCase("text/html; charset=utf-8"))
+                && ((response.contentType().equalsIgnoreCase(sitesList.getContentType()))
                 && (response.statusCode() == HttpStatus.OK.value())));
     }
 }

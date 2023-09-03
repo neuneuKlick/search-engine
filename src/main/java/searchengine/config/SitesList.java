@@ -12,5 +12,9 @@ import java.util.List;
 @Component
 @ConfigurationProperties(prefix = "indexing-settings")
 public class SitesList {
+    private String name;
+    private String referer;
+    private Integer timeout;
+    private String contentType;
     private List<Site> sites;
 }

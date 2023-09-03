@@ -15,17 +15,18 @@ import java.util.concurrent.ForkJoinPool;
 
 @Slf4j
 public class StartExecuting implements Runnable {
-    private final SiteModel siteModel;
-    private final NetworkService networkService;
-    private final SiteRepository siteRepository;
-    private final PageRepository pageRepository;
-    private static ForkJoinPool fjp = new ForkJoinPool();
 
-    public StartExecuting(SiteModel siteModel, NetworkService networkService, SiteRepository siteRepository, PageRepository pageRepository) {
+    private final SiteModel siteModel;
+    private final PageRepository pageRepository;
+    private final SiteRepository siteRepository;
+    private final NetworkService networkService;
+    private static ForkJoinPool fjp;
+
+    public StartExecuting(SiteModel siteModel, PageRepository pageRepository, SiteRepository siteRepository, NetworkService networkService) {
         this.siteModel = siteModel;
-        this.networkService = networkService;
-        this.siteRepository = siteRepository;
         this.pageRepository = pageRepository;
+        this.siteRepository = siteRepository;
+        this.networkService = networkService;
         fjp = new ForkJoinPool();
     }
 
@@ -33,7 +34,7 @@ public class StartExecuting implements Runnable {
     public void run() {
         try {
             long startTime = System.currentTimeMillis();
-            ParsingSite parsingSite = new ParsingSite(siteModel.getUrl(), siteModel, networkService, siteRepository, pageRepository);
+            ParsingSite parsingSite = new ParsingSite(siteModel.getUrl(), siteModel, pageRepository, siteRepository, networkService);
             fjp.invoke(parsingSite);
 
             if (!fjp.isShutdown()) {

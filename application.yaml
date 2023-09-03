@@ -14,8 +14,14 @@ spring:
       ddl-auto: create
 
 indexing-settings:
+
+  name: SearchBotFix/2.0
+  referer: https://google.com
+  timeout: 15000
+  contentType: text/html; charset=utf-8
+
   sites:
-    - url: https://nopaper.ru/
-      name: nopaper.ru
     - url: http://www.playback.ru/
       name: playback
+    - url: https://nopaper.ru/
+      name: nopaper.ru

@@ -12,12 +12,11 @@ import searchengine.model.SiteStatus;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 
-import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ForkJoinPool;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -25,25 +24,32 @@ import java.util.concurrent.ForkJoinPool;
 public class IndexingServiceImpl implements IndexingService {
 
     private final SitesList sitesList;
-    private final SiteRepository siteRepository;
     private final PageRepository pageRepository;
+    private final SiteRepository siteRepository;
     private final NetworkService networkService;
-    public static boolean isIndexed = true;
-    private static boolean isInterrupted = true;
+    private final Pattern pattern = Pattern.compile("^(https?://)?([\\w-]{1,32}\\.[\\w-]{1,32})[^\\s@]*$");
 
     @SneakyThrows
     @Override
     public IndexingResponse startIndexing() {
-
-        if (!isIndexingStarted()) {
+        ParsingSite.stop = false;
+        if (isIndexing()) {
             return new IndexingResponse(false, "Indexing is already running");
         }
-        List<Site> siteList = sitesList.getSites();
-
-        isIndexed();
-        isInterrupted();
-
-        executeIndexing(siteList);
+        Thread thread = new Thread(() -> {
+            log.info("Indexing started");
+            siteRepository.deleteAll();
+            ParsingSite.clearSetAbsUrl();
+            for (Site site : sitesList.getSites()) {
+                SiteModel siteModel = getSiteModel(site, SiteStatus.INDEXING);
+                siteRepository.saveAndFlush(siteModel);
+                StartExecuting startExecute = new StartExecuting(siteModel, pageRepository, siteRepository, networkService);
+                ExecutorService executorService = Executors.newSingleThreadExecutor();
+                executorService.submit(startExecute);
+            }
+        });
+        thread.start();
+        System.out.println();
 
         return new IndexingResponse(true, "");
     }
@@ -53,58 +59,23 @@ public class IndexingServiceImpl implements IndexingService {
         return new IndexingResponse(true, "");
     }
 
-    private void executeIndexing(List<Site> siteList) {
-
-        cleaningData();
-        ParsingSite.clearUrlList();
-
-        for (Site site : siteList) {
-
-            SiteModel siteModel = getSiteModel(site);
-
-            Runnable task = () -> {
-                StartExecuting startExecute = new StartExecuting(siteModel, networkService, siteRepository, pageRepository);
-                ExecutorService executorService = Executors.newSingleThreadExecutor();
-                executorService.submit(startExecute);
-            };
-
-            Thread thread = new Thread(task);
-            thread.start();
-        }
-    }
-
-    private SiteModel getSiteModel(Site site) {
-
+    private SiteModel getSiteModel(Site site, SiteStatus siteStatus) {
         SiteModel siteModel = new SiteModel();
-        siteModel.setSiteStatus(SiteStatus.INDEXING);
+        siteModel.setSiteStatus(siteStatus);
         siteModel.setTimeStatus(new Date());
         siteModel.setUrl(site.getUrl());
         siteModel.setName(site.getName());
-
-        siteRepository.saveAndFlush(siteModel);
-
+        siteModel.setLastError("");
         return siteModel;
     }
 
-    private static boolean isIndexed() {
-        return isIndexed = true;
-    }
-
-    private static boolean isIsIndexedStopped() {
-        return isIndexed = false;
-    }
-
-    private static boolean isInterrupted() {
-        return isInterrupted = false;
-    }
-
-    private void cleaningData() {
-        siteRepository.deleteAllInBatch();
-        pageRepository.deleteAllInBatch();
-    }
-
-    public boolean isIndexingStarted() {
-        return isIndexed;
+    private boolean isIndexing() {
+        List<SiteModel> all = siteRepository.findAll();
+        for (SiteModel siteModel : all) {
+            if (siteModel.getSiteStatus().equals(SiteStatus.INDEXING))
+                return true;
+        }
+        return false;
     }
 
 }
