@@ -24,4 +24,4 @@ indexing-settings:
     - url: http://www.playback.ru/
       name: playback
     - url: https://nopaper.ru/
-      name: nopaper.ru
+      name: nopaper

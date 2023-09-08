@@ -12,6 +12,7 @@ import searchengine.model.SiteStatus;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -23,7 +24,7 @@ import java.util.regex.Pattern;
 @Slf4j
 public class IndexingServiceImpl implements IndexingService {
 
-    private final SitesList sitesList;
+    private final SitesList sites;
     private final PageRepository pageRepository;
     private final SiteRepository siteRepository;
     private final NetworkService networkService;
@@ -32,23 +33,50 @@ public class IndexingServiceImpl implements IndexingService {
     @SneakyThrows
     @Override
     public IndexingResponse startIndexing() {
-        ParsingSite.stop = false;
+        ParseSite.switchOffIsInterrupted();
         if (isIndexing()) {
             return new IndexingResponse(false, "Indexing is already running");
         }
-        Thread thread = new Thread(() -> {
-            log.info("Indexing started");
-            siteRepository.deleteAll();
-            ParsingSite.clearSetAbsUrl();
-            for (Site site : sitesList.getSites()) {
-                SiteModel siteModel = getSiteModel(site, SiteStatus.INDEXING);
-                siteRepository.saveAndFlush(siteModel);
-                StartExecuting startExecute = new StartExecuting(siteModel, pageRepository, siteRepository, networkService);
-                ExecutorService executorService = Executors.newSingleThreadExecutor();
-                executorService.submit(startExecute);
+        siteRepository.deleteAll();
+        ParseSite.clearSetAbsUrl();
+        List<Site> sitesList = sites.getSites();
+        for (int i = 0; i < sitesList.size(); i++) {
+            SiteModel siteModel = new SiteModel();
+            getSiteModel(sitesList.get(i).getName(), sitesList.get(i).getUrl());
+            siteModel.setSiteStatus(SiteStatus.INDEXING);
+            siteModel.setTimeStatus(LocalDateTime.now());
+            siteModel.setUrl(sitesList.get(i).getUrl());
+            siteModel.setName(sitesList.get(i).getName());
+            siteModel.setLastError("");
+            siteRepository.save(siteModel);
+
+            try {
+                int lambdaVariable = i;
+                Runnable task = () -> {
+                    StartExecute startExecute = new StartExecute(sitesList.get(lambdaVariable).getUrl(), siteModel, pageRepository, siteRepository, networkService);
+                    ExecutorService executorService = Executors.newSingleThreadExecutor();
+                    executorService.submit(startExecute);
+                };
+                new Thread(task).start();
+
+            } catch (Exception e) {
+                log.info(e.getMessage());
             }
-        });
-        thread.start();
+        }
+//        System.out.println();
+//        Thread thread = new Thread(() -> {
+//            log.info("Indexing started");
+//            siteRepository.deleteAll();
+//            ParsingSite.clearSetAbsUrl();
+//            for (Site site : sites.getSites()) {
+//                SiteModel siteModel = getSiteModel(site, SiteStatus.INDEXING);
+//                siteRepository.saveAndFlush(siteModel);
+//                StartExecuting startExecute = new StartExecuting(siteModel, pageRepository, siteRepository, networkService);
+//                ExecutorService executorService = Executors.newSingleThreadExecutor();
+//                executorService.submit(startExecute);
+//            }
+//        });
+//        thread.start();
         System.out.println();
 
         return new IndexingResponse(true, "");
@@ -59,13 +87,14 @@ public class IndexingServiceImpl implements IndexingService {
         return new IndexingResponse(true, "");
     }
 
-    private SiteModel getSiteModel(Site site, SiteStatus siteStatus) {
+    private synchronized SiteModel getSiteModel(String name, String url) {
         SiteModel siteModel = new SiteModel();
-        siteModel.setSiteStatus(siteStatus);
-        siteModel.setTimeStatus(new Date());
-        siteModel.setUrl(site.getUrl());
-        siteModel.setName(site.getName());
+        siteModel.setSiteStatus(SiteStatus.INDEXING);
+        siteModel.setTimeStatus(LocalDateTime.now());
+        siteModel.setUrl(url);
+        siteModel.setName(name);
         siteModel.setLastError("");
+        siteRepository.saveAndFlush(siteModel);
         return siteModel;
     }
 

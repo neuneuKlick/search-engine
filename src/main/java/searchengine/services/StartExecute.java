@@ -1,7 +1,5 @@
 package searchengine.services;
 
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import searchengine.model.SiteModel;
 import searchengine.model.SiteStatus;
@@ -10,35 +8,41 @@ import searchengine.repositories.SiteRepository;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.concurrent.ForkJoinPool;
 
 @Slf4j
-public class StartExecuting implements Runnable {
+public class StartExecute implements Runnable {
 
     private final SiteModel siteModel;
     private final PageRepository pageRepository;
     private final SiteRepository siteRepository;
     private final NetworkService networkService;
     private static ForkJoinPool fjp;
+    private String url;
 
-    public StartExecuting(SiteModel siteModel, PageRepository pageRepository, SiteRepository siteRepository, NetworkService networkService) {
+    public StartExecute(String url, SiteModel siteModel, PageRepository pageRepository, SiteRepository siteRepository, NetworkService networkService) {
         this.siteModel = siteModel;
         this.pageRepository = pageRepository;
         this.siteRepository = siteRepository;
         this.networkService = networkService;
         fjp = new ForkJoinPool();
+        this.url = url;
     }
 
     @Override
     public void run() {
         try {
             long startTime = System.currentTimeMillis();
-            ParsingSite parsingSite = new ParsingSite(siteModel.getUrl(), siteModel, pageRepository, siteRepository, networkService);
+            ParseSite parsingSite = new ParseSite(url + "/", siteModel, pageRepository, siteRepository, networkService);
             fjp.invoke(parsingSite);
+            System.out.println("wow");
 
             if (!fjp.isShutdown()) {
-                siteIndexed();
+                siteModel.setSiteStatus(SiteStatus.INDEXED);
+                siteModel.setTimeStatus(LocalDateTime.now());
+                siteRepository.save(siteModel);
                 log.info("Site indexing " + siteModel.getName() + " is complected, in time: " + (System.currentTimeMillis() - startTime));
             }
         } catch (MalformedURLException m) {
@@ -54,9 +58,9 @@ public class StartExecuting implements Runnable {
         }
     }
 
-    private void siteIndexed() {
+    private synchronized void siteIndexed() {
         siteModel.setSiteStatus(SiteStatus.INDEXED);
-        siteModel.setTimeStatus(new Date());
+        siteModel.setTimeStatus(LocalDateTime.now());
         siteRepository.saveAndFlush(siteModel);
     }
 }
