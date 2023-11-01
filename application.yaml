@@ -21,7 +21,7 @@ indexing-settings:
   contentType: text/html; charset=utf-8
 
   sites:
+    - url: https://www.svetlovka.ru/
+      name: Svetlovka
     - url: http://www.playback.ru/
-      name: playback
-    - url: https://nopaper.ru/
-      name: nopaper
+      name: PlayBack

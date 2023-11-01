@@ -6,8 +6,13 @@ import searchengine.model.SiteStatus;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.MalformedURLException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.concurrent.ForkJoinPool;
@@ -34,17 +39,17 @@ public class StartExecute implements Runnable {
     @Override
     public void run() {
         try {
-            long startTime = System.currentTimeMillis();
-            ParseSite parsingSite = new ParseSite(url + "/", siteModel, pageRepository, siteRepository, networkService);
+            long start = System.currentTimeMillis();
+            ParseSite parsingSite = new ParseSite(url, siteModel, pageRepository, siteRepository, networkService);
             fjp.invoke(parsingSite);
-            System.out.println("wow");
 
             if (!fjp.isShutdown()) {
                 siteModel.setSiteStatus(SiteStatus.INDEXED);
                 siteModel.setTimeStatus(LocalDateTime.now());
                 siteRepository.save(siteModel);
-                log.info("Site indexing " + siteModel.getName() + " is complected, in time: " + (System.currentTimeMillis() - startTime));
+                log.info("Site indexing " + siteModel.getName() + " is complected, in time: " + (System.currentTimeMillis() - start));
             }
+            System.out.println("Duration: " + (System.currentTimeMillis() - start));
         } catch (MalformedURLException m) {
             log.info("Interrupted I/O operations " + m.getMessage());
         } catch (IOException i) {
