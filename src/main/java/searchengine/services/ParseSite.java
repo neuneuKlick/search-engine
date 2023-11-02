@@ -29,7 +29,7 @@ public class ParseSite extends RecursiveAction {
     private final PageRepository pageRepository;
     private final SiteRepository siteRepository;
     private static NetworkService networkService;
-    private static volatile Boolean isInterrupted;
+    public static volatile Boolean isInterrupted = false;
     private final static Set<String> urlList = new HashSet<>();
     private final ExecutorService executorService;
 
@@ -53,6 +53,10 @@ public class ParseSite extends RecursiveAction {
 
     @Override
     protected void compute() {
+        if (isInterrupted) {
+            StartExecute.shutdown();
+            return;
+        }
         log.info("log test");
         List<ParseSite> taskList = new LinkedList<>();
         try {
@@ -100,5 +104,9 @@ public class ParseSite extends RecursiveAction {
         pageModel.setContent(document.outerHtml());
         pageRepository.saveAndFlush(pageModel);
         return pageModel;
+    }
+
+    public static void clearUrlList() {
+        urlList.clear();
     }
 }

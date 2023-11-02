@@ -17,6 +17,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 @Service
@@ -33,12 +35,12 @@ public class IndexingServiceImpl implements IndexingService {
     @Override
     public IndexingResponse startIndexing() {
         long start = System.currentTimeMillis();
-//        ParseSite.switchOffIsInterrupted();
+        ParseSite.isInterrupted = false;
         if (isIndexing()) {
             return new IndexingResponse(false, "Indexing is already running");
         }
         siteRepository.deleteAll();
-//        ParseSite.clearSetAbsUrl();
+        ParseSite.clearUrlList();
         List<Site> sitesList = sites.getSites();
         for (int i = 0; i < sitesList.size(); i++) {
             SiteModel siteModel = new SiteModel();
@@ -67,18 +69,30 @@ public class IndexingServiceImpl implements IndexingService {
         return new IndexingResponse(true, "");
     }
 
+    @SneakyThrows
     @Override
     public IndexingResponse stopIndexing() {
+        log.info("stopIndexing test");
+        ParseSite.isInterrupted = true;
+        ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+        scheduledExecutorService.schedule(() -> {
+            List<SiteModel> allSiteModel = siteRepository.findAll();
+            for (SiteModel siteModel : allSiteModel) {
+                siteModel.setSiteStatus(SiteStatus.FAILED);
+                siteModel.setLastError("Indexing stopped");
+                siteRepository.saveAndFlush(siteModel);
+            }
+        }, 5000, TimeUnit.MILLISECONDS);
         return new IndexingResponse(true, "");
     }
 
     private boolean isIndexing() {
-        List<SiteModel> all = siteRepository.findAll();
-        for (SiteModel siteModel : all) {
-            if (siteModel.getSiteStatus().equals(SiteStatus.INDEXING))
+        List<SiteModel> allSiteModel = siteRepository.findAll();
+        for (SiteModel siteModel : allSiteModel) {
+            if (siteModel.getSiteStatus().equals(SiteStatus.INDEXING)) {
                 return true;
+            }
         }
         return false;
     }
-
 }
