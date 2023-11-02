@@ -37,7 +37,7 @@ public class IndexingServiceImpl implements IndexingService {
         long start = System.currentTimeMillis();
         ParseSite.isInterrupted = false;
         if (isIndexing()) {
-            return new IndexingResponse(false, "Indexing is already running");
+            return new IndexingResponse(false, "Индексация уже запущена");
         }
         siteRepository.deleteAll();
         ParseSite.clearUrlList();
@@ -55,7 +55,8 @@ public class IndexingServiceImpl implements IndexingService {
             try {
                 int lambdaVariable = i;
                 Runnable task = () -> {
-                    StartExecute startExecute = new StartExecute(sitesList.get(lambdaVariable).getUrl(), siteModel, pageRepository, siteRepository, networkService);
+                    StartExecute startExecute = new StartExecute(sitesList.get(lambdaVariable).getUrl(), siteModel,
+                            pageRepository, siteRepository, networkService);
                     ExecutorService executorService = Executors.newSingleThreadExecutor();
                     executorService.submit(startExecute);
                 };
@@ -79,11 +80,26 @@ public class IndexingServiceImpl implements IndexingService {
             List<SiteModel> allSiteModel = siteRepository.findAll();
             for (SiteModel siteModel : allSiteModel) {
                 siteModel.setSiteStatus(SiteStatus.FAILED);
-                siteModel.setLastError("Indexing stopped");
+                siteModel.setLastError("Индексация остановлена пользователем");
                 siteRepository.saveAndFlush(siteModel);
             }
-        }, 5000, TimeUnit.MILLISECONDS);
+        }, 1000, TimeUnit.MILLISECONDS);
         return new IndexingResponse(true, "");
+    }
+
+    @Override
+    public IndexingResponse indexingPage(String url) {
+        if (url.isEmpty()) {
+            return new IndexingResponse(false, "Вы ввели неверный url");
+        }
+        for (Site site : sites.getSites()) {
+            if (url.contains(site.getUrl())) {
+                return new IndexingResponse(true, "");
+            }
+        }
+        return new IndexingResponse(false, "Данная страница находится за пределами сайтов, " +
+                "указанных в конфигурационном файле");
+
     }
 
     private boolean isIndexing() {
