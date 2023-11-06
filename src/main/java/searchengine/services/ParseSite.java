@@ -1,25 +1,21 @@
 package searchengine.services;
 
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Connection;
 import org.jsoup.HttpStatusException;
-import org.jsoup.Jsoup;
-import org.jsoup.UnsupportedMimeTypeException;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import searchengine.model.PageModel;
 import searchengine.model.SiteModel;
-import searchengine.model.SiteStatus;
+import searchengine.repositories.IndexRepository;
+import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.regex.Pattern;
 
 @Slf4j
 public class ParseSite extends RecursiveAction {
@@ -32,20 +28,34 @@ public class ParseSite extends RecursiveAction {
     public static volatile Boolean isInterrupted = false;
     private final static Set<String> urlList = new HashSet<>();
     private final ExecutorService executorService;
+    private final LemmaRepository lemmaRepository;
+    private final IndexRepository indexRepository;
+    private final LemmaFinder lemmaFinder;
 
-    public ParseSite(String url, SiteModel siteModel, PageRepository pageRepository, SiteRepository siteRepository, ExecutorService executorService) {
+
+    public ParseSite(String url, SiteModel siteModel, PageRepository pageRepository, SiteRepository siteRepository,
+                     ExecutorService executorService, LemmaRepository lemmaRepository, IndexRepository indexRepository,
+                     LemmaFinder lemmaFinder) {
         this.url = url.trim();
         this.siteModel = siteModel;
         this.pageRepository = pageRepository;
         this.siteRepository = siteRepository;
         this.executorService = executorService;
+        this.lemmaRepository = lemmaRepository;
+        this.indexRepository = indexRepository;
+        this.lemmaFinder = lemmaFinder;
     }
 
-    public ParseSite(String url, SiteModel siteModel, PageRepository pageRepository, SiteRepository siteRepository, NetworkService networkService) throws IOException{
+    public ParseSite(String url, SiteModel siteModel, PageRepository pageRepository, SiteRepository siteRepository,
+                     NetworkService networkService, LemmaRepository lemmaRepository,
+                     IndexRepository indexRepository, LemmaFinder lemmaFinder) throws IOException{
         this.url = url;
         this.siteModel = siteModel;
         this.pageRepository = pageRepository;
         this.siteRepository = siteRepository;
+        this.lemmaRepository = lemmaRepository;
+        this.indexRepository = indexRepository;
+        this.lemmaFinder = lemmaFinder;
         this.executorService = Executors.newFixedThreadPool(16);
         ParseSite.networkService = networkService;
 
@@ -69,7 +79,18 @@ public class ParseSite extends RecursiveAction {
                 return;
             }
             Document doc = response.parse();
-            getPageModel(url, doc);
+
+            PageModel pageModel = new PageModel();
+            pageModel.setSiteModel(siteModel);
+            pageModel.setPath(url.substring(siteModel.getUrl().length() - 1));
+            pageModel.setCodeResponse(200);
+            pageModel.setContent(doc.outerHtml());
+            pageRepository.saveAndFlush(pageModel);
+
+            Future<?> submit = executorService.submit(new LemmaRun(siteModel, pageModel,
+                    indexRepository, lemmaRepository, lemmaFinder));
+            submit.get();
+
             Elements elements = doc.select("a[href]");
             for (Element element : elements) {
                 String attrUrl = element.absUrl("href");
@@ -80,7 +101,8 @@ public class ParseSite extends RecursiveAction {
                         && !attrUrl.matches("\\.[0-9a-z]{1,5}$")
                         && !attrUrl.equals(url)) {
                     urlList.add(attrUrl);
-                    ParseSite task = new ParseSite(attrUrl, siteModel, pageRepository, siteRepository, executorService);
+                    ParseSite task = new ParseSite(attrUrl, siteModel, pageRepository, siteRepository,
+                            executorService, lemmaRepository, indexRepository, lemmaFinder);
                     task.fork();
                     taskList.add(task);
                 }
@@ -90,20 +112,10 @@ public class ParseSite extends RecursiveAction {
             }
         } catch (HttpStatusException e) {
 
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException | InterruptedException | ExecutionException e) {
             e.printStackTrace();
 
         }
-    }
-
-    private PageModel getPageModel(String url, Document document) {
-        PageModel pageModel = new PageModel();
-        pageModel.setSiteModel(siteModel);
-        pageModel.setPath(url.substring(siteModel.getUrl().length() - 1));
-        pageModel.setCodeResponse(200);
-        pageModel.setContent(document.outerHtml());
-        pageRepository.saveAndFlush(pageModel);
-        return pageModel;
     }
 
     public static void clearUrlList() {

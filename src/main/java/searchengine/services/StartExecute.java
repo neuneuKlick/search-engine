@@ -3,6 +3,8 @@ package searchengine.services;
 import lombok.extern.slf4j.Slf4j;
 import searchengine.model.SiteModel;
 import searchengine.model.SiteStatus;
+import searchengine.repositories.IndexRepository;
+import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 
@@ -26,21 +28,30 @@ public class StartExecute implements Runnable {
     private final NetworkService networkService;
     private static ForkJoinPool fjp;
     private String url;
+    private final LemmaRepository lemmaRepository;
+    private final IndexRepository indexRepository;
+    private final LemmaFinder lemmaFinder;
 
-    public StartExecute(String url, SiteModel siteModel, PageRepository pageRepository, SiteRepository siteRepository, NetworkService networkService) {
+    public StartExecute(String url, SiteModel siteModel, PageRepository pageRepository, SiteRepository siteRepository,
+                        NetworkService networkService, LemmaRepository lemmaRepository, IndexRepository indexRepository,
+                        LemmaFinder lemmaFinder) {
         this.siteModel = siteModel;
         this.pageRepository = pageRepository;
         this.siteRepository = siteRepository;
         this.networkService = networkService;
         fjp = new ForkJoinPool();
         this.url = url;
+        this.lemmaRepository = lemmaRepository;
+        this.indexRepository = indexRepository;
+        this.lemmaFinder = lemmaFinder;
     }
 
     @Override
     public void run() {
         try {
             long start = System.currentTimeMillis();
-            ParseSite parsingSite = new ParseSite(url, siteModel, pageRepository, siteRepository, networkService);
+            ParseSite parsingSite = new ParseSite(url, siteModel, pageRepository, siteRepository, networkService,
+                    lemmaRepository, indexRepository, lemmaFinder);
             fjp.invoke(parsingSite);
 
             if (!fjp.isShutdown()) {

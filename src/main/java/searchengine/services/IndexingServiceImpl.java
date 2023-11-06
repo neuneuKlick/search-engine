@@ -3,12 +3,15 @@ package searchengine.services;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import searchengine.config.Site;
 import searchengine.config.SitesList;
 import searchengine.dto.statistics.IndexingResponse;
 import searchengine.model.SiteModel;
 import searchengine.model.SiteStatus;
+import searchengine.repositories.IndexRepository;
+import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 
@@ -30,6 +33,9 @@ public class IndexingServiceImpl implements IndexingService {
     private final PageRepository pageRepository;
     private final SiteRepository siteRepository;
     private final NetworkService networkService;
+    private final LemmaRepository lemmaRepository;
+    private final IndexRepository indexRepository;
+    private final LemmaFinder lemmaFinder;
 
     @SneakyThrows
     @Override
@@ -56,7 +62,8 @@ public class IndexingServiceImpl implements IndexingService {
                 int lambdaVariable = i;
                 Runnable task = () -> {
                     StartExecute startExecute = new StartExecute(sitesList.get(lambdaVariable).getUrl(), siteModel,
-                            pageRepository, siteRepository, networkService);
+                            pageRepository, siteRepository, networkService,
+                            lemmaRepository, indexRepository, lemmaFinder);
                     ExecutorService executorService = Executors.newSingleThreadExecutor();
                     executorService.submit(startExecute);
                 };
