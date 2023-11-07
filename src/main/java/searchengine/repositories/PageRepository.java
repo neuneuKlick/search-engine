@@ -14,5 +14,6 @@ import java.util.List;
 @Repository
 public interface PageRepository extends JpaRepository<PageModel, Integer> {
 
-
+    @Query("select COUNT(*) from PageModel AS e group by e.siteModel having e.siteModel =:site")
+    Integer findCountBySite(SiteModel site);
 }

@@ -16,6 +16,7 @@ import searchengine.repositories.SiteRepository;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.regex.Pattern;
 
 @Slf4j
 public class ParseSite extends RecursiveAction {
@@ -97,7 +98,7 @@ public class ParseSite extends RecursiveAction {
                 if (!attrUrl.isEmpty()
                         && attrUrl.startsWith(url)
                         && !urlList.contains(attrUrl)
-                        && !attrUrl.contains("#") //
+                        && !attrUrl.contains("#")
                         && !attrUrl.matches("\\.[0-9a-z]{1,5}$")
                         && !attrUrl.equals(url)) {
                     urlList.add(attrUrl);

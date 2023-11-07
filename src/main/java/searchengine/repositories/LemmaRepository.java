@@ -10,4 +10,6 @@ import javax.persistence.criteria.CriteriaBuilder;
 @Repository
 public interface LemmaRepository extends JpaRepository<LemmaModel, Integer> {
     LemmaModel findByLemmaAndSiteModel(String lemma, SiteModel siteModel);
+
+    Integer countBySiteModel(SiteModel siteModel);
 }
