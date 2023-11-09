@@ -3,11 +3,15 @@ package searchengine.services;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.jsoup.Connection;
+import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import searchengine.config.Site;
 import searchengine.config.SitesList;
 import searchengine.dto.statistics.IndexingResponse;
+import searchengine.model.PageModel;
 import searchengine.model.SiteModel;
 import searchengine.model.SiteStatus;
 import searchengine.repositories.IndexRepository;
@@ -15,6 +19,7 @@ import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
@@ -50,7 +55,6 @@ public class IndexingServiceImpl implements IndexingService {
         List<Site> sitesList = sites.getSites();
         for (int i = 0; i < sitesList.size(); i++) {
             SiteModel siteModel = new SiteModel();
-
             siteModel.setSiteStatus(SiteStatus.INDEXING);
             siteModel.setTimeStatus(LocalDateTime.now());
             siteModel.setUrl(sitesList.get(i).getUrl());
@@ -94,15 +98,31 @@ public class IndexingServiceImpl implements IndexingService {
         return new IndexingResponse(true, "");
     }
 
+
     @Override
     public IndexingResponse indexingPage(String url) {
-        if (url.isEmpty()) {
-            return new IndexingResponse(false, "Вы ввели неверный url");
-        }
-        for (Site site : sites.getSites()) {
-            if (url.contains(site.getUrl())) {
-                return new IndexingResponse(true, "");
+        try {
+            if (url.isEmpty()) {
+                return new IndexingResponse(false, "Вы ввели неверный url");
             }
+            Connection.Response connection = networkService.getConnection(url);
+            Document document = connection.parse();
+
+            for (Site site : sites.getSites()) {
+                SiteModel siteModel = siteRepository.findSiteModelByUrl(site.getUrl());
+                if (url.contains(site.getUrl()) && siteModel == null) {
+                    SiteModel newSiteModel = getSiteModel(site, SiteStatus.INDEXED);
+                    siteRepository.saveAndFlush(newSiteModel);
+                    PageModel newPageModel = getPageModel(document, url.substring(site.getUrl().length()), newSiteModel);
+                    pageRepository.saveAndFlush(newPageModel);
+                    return new IndexingResponse(true, "");
+                }
+                if (url.contains(site.getUrl()) && siteModel != null) {
+                    return new IndexingResponse(false, "");
+                }
+            }
+        } catch (IOException e) {
+            return new IndexingResponse(false, "Сайт не доступен");
         }
         return new IndexingResponse(false, "Данная страница находится за пределами сайтов, " +
                 "указанных в конфигурационном файле");
@@ -117,5 +137,22 @@ public class IndexingServiceImpl implements IndexingService {
             }
         }
         return false;
+    }
+    private SiteModel getSiteModel(Site site, SiteStatus siteStatus) {
+        SiteModel siteModel = new SiteModel();
+        siteModel.setSiteStatus(siteStatus);
+        siteModel.setTimeStatus(LocalDateTime.now());
+        siteModel.setUrl(site.getUrl());
+        siteModel.setName(site.getName());
+        siteModel.setLastError("");
+        return siteModel;
+    }
+    private PageModel getPageModel(Document document, String path, SiteModel siteModel) {
+        PageModel pageModel = new PageModel();
+        pageModel.setSiteModel(siteModel);
+        pageModel.setPath(path);
+        pageModel.setCodeResponse(200);
+        pageModel.setContent(document.html());
+        return pageModel;
     }
 }

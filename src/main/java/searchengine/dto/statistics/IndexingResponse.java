@@ -2,10 +2,16 @@ package searchengine.dto.statistics;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
 @Data
-@AllArgsConstructor
 public class IndexingResponse {
     private boolean result;
     private String error;
+
+    public IndexingResponse(boolean result, String error) {
+        this.result = result;
+        this.error = error;
+    }
 }

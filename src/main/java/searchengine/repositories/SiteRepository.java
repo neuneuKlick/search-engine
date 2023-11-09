@@ -14,7 +14,6 @@ public interface SiteRepository extends JpaRepository<SiteModel, Integer> {
 
     SiteModel findSiteModelByUrl(String url);
 
-
     @Query("select e.lastError  from SiteModel as e where e.url=:url")
     String findErrorByUrl(String url);
 }

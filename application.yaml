@@ -23,3 +23,5 @@ indexing-settings:
   sites:
     - url: http://www.playback.ru/
       name: PlayBack
+    - url: http://www.svetlovka.ru/
+      name: Svetlovka
