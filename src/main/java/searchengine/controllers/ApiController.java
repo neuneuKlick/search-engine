@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import searchengine.dto.statistics.IndexingResponse;
 import searchengine.dto.statistics.StatisticsResponse;
 import searchengine.services.IndexingService;
+import searchengine.services.IndexingServiceImpl;
 import searchengine.services.StatisticsService;
 
 @RestController
@@ -20,7 +21,7 @@ import searchengine.services.StatisticsService;
 public class ApiController {
 
     private final StatisticsService statisticsService;
-    private final IndexingService indexingService;
+    private final IndexingServiceImpl indexingService;
 
     @GetMapping("/statistics")
     public ResponseEntity<StatisticsResponse> statistics() {

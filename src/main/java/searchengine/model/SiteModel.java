@@ -1,42 +1,43 @@
 package searchengine.model;
 
-import lombok.Getter;
-import lombok.Setter;
-
+import lombok.*;
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
-@Entity(name = "SiteModel")
+@Entity
 @Getter
 @Setter
-@Table(name = "site")
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "sites")
 public class SiteModel {
     @Id
-    @Column(name = "id", nullable = false)
+    @Column(nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private int id;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, columnDefinition = "ENUM ('INDEXED', 'INDEXING', 'FAILED')")
+    @Column(columnDefinition = "ENUM ('INDEXED', 'INDEXING', 'FAILED')", nullable = false)
     private SiteStatus siteStatus;
 
-    @Column(name = "status_time", nullable = false, columnDefinition = "DATETIME")
+    @Column(nullable = false)
     private LocalDateTime timeStatus;
 
-    @Column(name = "last_error", columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String lastError;
 
-    @Column(nullable = false, columnDefinition = "VARCHAR(255)")
+    @Column(columnDefinition = "VARCHAR(255)", nullable = false)
     private String url;
 
-    @Column(nullable = false, columnDefinition = "VARCHAR(255)")
+    @Column(columnDefinition = "VARCHAR(255)", nullable = false)
     private String name;
 
-    @OneToMany(mappedBy = "siteModel", cascade = CascadeType.REMOVE)
-    private Set<PageModel> pageModel;
+    @OneToMany(mappedBy = "site", cascade = CascadeType.MERGE)
+    private List<PageModel> pages= new ArrayList<>();
 
-    @OneToMany(mappedBy = "siteModel", cascade = CascadeType.REMOVE)
-    private Set<LemmaModel> lemmaModel;
+    @OneToMany(mappedBy = "site", cascade = CascadeType.MERGE)
+    private List<LemmaModel> lemmas = new ArrayList<>();
 }

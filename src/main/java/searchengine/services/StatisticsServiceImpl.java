@@ -14,6 +14,7 @@ import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 
+
 import java.lang.constant.Constable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -53,7 +54,7 @@ public class StatisticsServiceImpl implements StatisticsService {
             int countPage = pageRepository.findCountBySite(siteModel) == null ? 0 :
                     pageRepository.findCountBySite(siteModel);
             item.setPages(countPage);
-            int countLemma = lemmaRepository.countBySiteModel(siteModel);
+            int countLemma = lemmaRepository.countBySite(siteModel);
             item.setLemmas(countLemma);
             item.setStatus(siteStatus == null ? "" : siteStatus.toString());
             Constable errorSite = siteRepository.findErrorByUrl(site.getUrl());

@@ -12,6 +12,10 @@ public interface SiteRepository extends JpaRepository<SiteModel, Integer> {
     @Query("select e.siteStatus from SiteModel as e where e.url =:url")
     SiteStatus findByUrl(String url);
 
+    boolean existsByIdAndSiteStatus(Integer id, SiteStatus status);
+
+    boolean existsBySiteStatus(SiteStatus status);
+
     SiteModel findSiteModelByUrl(String url);
 
     @Query("select e.lastError  from SiteModel as e where e.url=:url")

@@ -1,8 +1,6 @@
 package searchengine.model;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.Immutable;
 
 import javax.persistence.*;
@@ -10,28 +8,25 @@ import javax.persistence.*;
 @Entity
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
-@Table(name = "`index`")
+@AllArgsConstructor
+@Table(name = "indexes", uniqueConstraints = @UniqueConstraint(columnNames = {"page", "lemma"}))
 public class IndexModel {
     @Id
     @Column(nullable = false)
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Integer id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(foreignKey = @ForeignKey(name = "FK_index_page_id"), name = "page_id", nullable = false)
-    public PageModel pageModel;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(columnDefinition = "INT", name = "page", nullable = false)
+    public PageModel page;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(foreignKey = @ForeignKey(name = "FK_index_lemma_id"), name = "lemma_id", nullable = false)
-    public LemmaModel lemmaModel;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(columnDefinition = "INT", name = "lemma", nullable = false)
+    public LemmaModel lemma;
 
     @Column(name = "`rank`", nullable = false)
     private float rank;
 
-    public IndexModel(PageModel pageModel, LemmaModel lemmaModel, float rank) {
-        this.pageModel = pageModel;
-        this.lemmaModel = lemmaModel;
-        this.rank = rank;
-    }
 }

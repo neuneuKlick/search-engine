@@ -45,10 +45,10 @@ public class LemmaRun implements Runnable {
         for (String lemma : words) {
             Integer countLemma = lemmaList.get(lemma);
             synchronized (siteModel) {
-                LemmaModel lemmaModel = lemmaRepository.findByLemmaAndSiteModel(lemma, siteModel);
+                LemmaModel lemmaModel = lemmaRepository.findByLemmaAndSite(lemma, siteModel);
                 if (lemmaModel == null) {
                     LemmaModel newLemmaModel = new LemmaModel();
-                    newLemmaModel.setSiteModel(siteModel);
+                    newLemmaModel.setSite(siteModel);
                     newLemmaModel.setLemma(lemma);
                     newLemmaModel.setFrequency(1);
                     lemmaModel = lemmaRepository.saveAndFlush(newLemmaModel);
@@ -57,8 +57,8 @@ public class LemmaRun implements Runnable {
                     lemmaRepository.saveAndFlush(lemmaModel);
                 }
                 IndexModel newIndexModel = new IndexModel();
-                newIndexModel.setPageModel(pageModel);
-                newIndexModel.setLemmaModel(lemmaModel);
+                newIndexModel.setPage(pageModel);
+                newIndexModel.setLemma(lemmaModel);
                 newIndexModel.setRank(countLemma);
                 indexRepository.saveAndFlush(newIndexModel);
             }

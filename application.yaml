@@ -11,17 +11,18 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
 
 indexing-settings:
-
-  name: SearchBotFix/2.0
-  referer: https://google.com
-  timeout: 15000
-  contentType: text/html; charset=utf-8
-
   sites:
     - url: http://www.playback.ru/
       name: PlayBack
     - url: http://www.svetlovka.ru/
       name: Svetlovka
+
+
+jsoup:
+  user_agent: searchBotProject
+  referrer: http://www.google.com
+  timeout_min: 50
+  timeout_max: 150
