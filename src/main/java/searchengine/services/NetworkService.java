@@ -21,6 +21,7 @@ public class NetworkService {
 
     private final JsoupConfig jsoupConfig;
     private static final Random random = new Random();
+    private final SitesList sitesList;
 
     public PageInfo getPageInfo(String url) throws IOException, InterruptedException {
         Connection.Response response = getResponse(url);
@@ -39,7 +40,6 @@ public class NetworkService {
                 .ignoreHttpErrors(true)
                 .execute();
     }
-
     public Set<String> getPaths(String content) {
         Document document = Jsoup.parse(content);
         return document.select("a[href]").stream()
@@ -50,6 +50,21 @@ public class NetworkService {
 
     public String htmlToText(String content) {
         return Jsoup.parse(content).text();
+    }
+    public Boolean isAvailableContent(Connection.Response response) {
+        return ((response != null)
+                && (response.contentType().equalsIgnoreCase(sitesList.getContentType())
+                && (response.statusCode() == HttpStatus.OK.value())));
+    }
+
+    public Connection.Response getConnection(String url) throws IOException {
+        return Jsoup.connect(url).
+                ignoreContentType(true).
+                userAgent(sitesList.getName())
+                .referrer(sitesList.getReferer()).
+                timeout(sitesList.getTimeout()).
+                followRedirects(false).
+                execute();
     }
 
 }

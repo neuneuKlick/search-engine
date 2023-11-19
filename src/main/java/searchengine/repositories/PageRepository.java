@@ -20,6 +20,7 @@ public interface PageRepository extends JpaRepository<PageModel, Integer> {
 
     boolean existsBySiteIdAndPath(Integer siteId, String url);
 
+    Optional<PageModel> findBySiteAndPath(SiteModel site, String url);
 
 
 }

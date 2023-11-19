@@ -10,13 +10,10 @@ import searchengine.model.SiteModel;
 import searchengine.repositories.IndexRepository;
 import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.SiteRepository;
-
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-
-
 
 @Slf4j
 @RequiredArgsConstructor
@@ -35,7 +32,7 @@ public class LemmaServiceImpl implements LemmaService {
         Map<String, Integer> lemmaMap = lemmaFinder.collectLemmas(clearText);
 
         Set<LemmaModel> lemmaSetToSave = new HashSet<>();
-        Set<IndexModel> indices = new HashSet<>();
+        Set<IndexModel> indexes = new HashSet<>();
         synchronized (lemmaRepository) {
             lemmaMap.forEach((name, count) -> {
                 Optional<LemmaModel> optionalLemma = lemmaRepository.findBySiteAndLemma(page.getSite(), name);
@@ -51,7 +48,7 @@ public class LemmaServiceImpl implements LemmaService {
                     lemmaSetToSave.add(lemma);
                 }
 
-                indices.add(IndexModel.builder()
+                indexes.add(IndexModel.builder()
                         .page(page)
                         .lemma(lemma)
                         .rank((float) count)
@@ -59,7 +56,7 @@ public class LemmaServiceImpl implements LemmaService {
             });
             lemmaRepository.saveAll(lemmaSetToSave);
         }
-        indexRepository.saveAll(indices);
+        indexRepository.saveAll(indexes);
     }
 
     @Override
@@ -67,7 +64,7 @@ public class LemmaServiceImpl implements LemmaService {
         SiteModel siteModel = siteRepository.findById(siteId).orElseThrow(() -> new IllegalStateException("Site not found"));
         Set<LemmaModel> lemmaToSave = new HashSet<>();
         Set<LemmaModel> lemmaToDelete = new HashSet<>();
-        log.info("Start lemmas frequency calculation for site: {}", siteModel);
+        log.info("Лемматизация сайта: {}", siteModel);
         for (LemmaModel lemmaModel : lemmaRepository.findAllBySite(siteModel)) {
             int frequency = indexRepository.countByLemma(lemmaModel);
             if (frequency == 0) {
@@ -78,7 +75,7 @@ public class LemmaServiceImpl implements LemmaService {
             }
         }
         lemmaRepository.deleteAll(lemmaToDelete);
-        log.info("Update lemmas: " + lemmaToSave.size());
+        log.info("Сохранение лемм: " + lemmaToSave.size());
         lemmaRepository.saveAll(lemmaToSave);
     }
 }

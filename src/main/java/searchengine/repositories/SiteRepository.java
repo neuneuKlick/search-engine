@@ -6,6 +6,9 @@ import org.springframework.stereotype.Repository;
 import searchengine.model.SiteModel;
 import searchengine.model.SiteStatus;
 
+import java.util.Optional;
+import java.util.Set;
+
 @Repository
 public interface SiteRepository extends JpaRepository<SiteModel, Integer> {
 
@@ -16,8 +19,12 @@ public interface SiteRepository extends JpaRepository<SiteModel, Integer> {
 
     boolean existsBySiteStatus(SiteStatus status);
 
-    SiteModel findSiteModelByUrl(String url);
+    Set<SiteModel> findAllBySiteStatus(SiteStatus status);
 
     @Query("select e.lastError  from SiteModel as e where e.url=:url")
     String findErrorByUrl(String url);
+
+    boolean existsBySiteStatusNot(SiteStatus status);
+
+    Optional<SiteModel> findByUrlIgnoreCase(String siteUrl);
 }

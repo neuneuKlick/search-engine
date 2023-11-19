@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 public class ParseSite extends RecursiveAction {
-
     private final String url;
     private final Integer siteId;
     private final SiteRepository siteRepository;
@@ -36,7 +35,6 @@ public class ParseSite extends RecursiveAction {
     private final NetworkService networkService;
     private final LemmaServiceImpl lemmaService;
     private final boolean isAction;
-
 
     @Override
     protected void compute() {
@@ -48,7 +46,9 @@ public class ParseSite extends RecursiveAction {
                 Optional<PageModel> optionalPageModel = savePage(siteId, url);
                 if (optionalPageModel.isPresent()) {
                     PageModel pageModel = optionalPageModel.get();
-
+                    if (pageModel.getCodeResponse() < 400) {
+                        lemmaService.findAndSave(pageModel);
+                    }
                     Set<ForkJoinTask<Void>> tasks = networkService.getPaths(pageModel.getContent()).stream()
                             .map(pathFromPage -> new ParseSite(pathFromPage, siteId,
                                     siteRepository, pageRepository,
@@ -99,7 +99,7 @@ public class ParseSite extends RecursiveAction {
     }
 
     private void failed(Integer siteId, String error) {
-        log.warn("Failed indexing site with id {}: {}", siteId, error);
+        log.warn("Ошибка индексации сайта {}: {}", siteId, error);
         SiteModel persistSite = getSiteModel(siteId);
         persistSite.setLastError(error);
         persistSite.setSiteStatus(SiteStatus.FAILED);
