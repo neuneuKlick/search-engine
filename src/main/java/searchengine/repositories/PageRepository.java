@@ -22,5 +22,7 @@ public interface PageRepository extends JpaRepository<PageModel, Integer> {
 
     Optional<PageModel> findBySiteAndPath(SiteModel site, String url);
 
+    List<PageModel> findAllByIdIn(List<Integer> id);
+
 
 }

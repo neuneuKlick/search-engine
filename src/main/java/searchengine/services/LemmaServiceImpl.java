@@ -61,7 +61,7 @@ public class LemmaServiceImpl implements LemmaService {
 
     @Override
     public void updateLemmasFrequency(Integer siteId) {
-        SiteModel siteModel = siteRepository.findById(siteId).orElseThrow(() -> new IllegalStateException("Site not found"));
+        SiteModel siteModel = siteRepository.findById(siteId).orElseThrow(() -> new IllegalStateException("Сайт не найден"));
         Set<LemmaModel> lemmaToSave = new HashSet<>();
         Set<LemmaModel> lemmaToDelete = new HashSet<>();
         log.info("Лемматизация сайта: {}", siteModel);

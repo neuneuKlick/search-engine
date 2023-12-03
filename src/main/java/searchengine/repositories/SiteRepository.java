@@ -12,8 +12,8 @@ import java.util.Set;
 @Repository
 public interface SiteRepository extends JpaRepository<SiteModel, Integer> {
 
-    @Query("select e.siteStatus from SiteModel as e where e.url =:url")
-    SiteStatus findByUrl(String url);
+
+    SiteModel findByUrl(String url);
 
     boolean existsByIdAndSiteStatus(Integer id, SiteStatus status);
 

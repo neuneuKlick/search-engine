@@ -101,8 +101,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven-compiler-plugin.version}</version>
                 <configuration>
-                    <source>12</source>
-                    <target>12</target>
+                    <source>16</source>
+                    <target>16</target>
                 </configuration>
             </plugin>
 

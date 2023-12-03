@@ -11,11 +11,13 @@ import java.util.Set;
 
 @Repository
 public interface LemmaRepository extends JpaRepository<LemmaModel, Integer> {
-    LemmaModel findByLemmaAndSite(String lemma, SiteModel site);
+    LemmaModel findByLemmaAndSite(String lemma, SiteModel siteModel);
 
     Optional<LemmaModel> findBySiteAndLemma(SiteModel site, String name);
 
     Set<LemmaModel> findAllBySite(SiteModel site);
 
     Integer countBySite(SiteModel site);
+
+
 }
