@@ -67,4 +67,9 @@ public class NetworkService {
                 execute();
     }
 
+    public String getTitle(String content) {
+        Document document = Jsoup.parse(content);
+        return document.title();
+    }
+
 }

@@ -5,9 +5,7 @@ import lombok.*;
 import java.util.List;
 
 
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
+
 @Data
 public class SearchResponse {
     private boolean results;
@@ -15,8 +13,14 @@ public class SearchResponse {
     private int count;
     private List<SearchInfo> listSearchInfo;
 
-    public SearchResponse(boolean results, String error) {
-        this.results = results;
+    public SearchResponse(boolean result, String error) {
+        this.results = result;
         this.error = error;
+    }
+
+    public SearchResponse(boolean result, int count, List<SearchInfo> listSearchInfo) {
+        this.results = result;
+        this.count = count;
+        this.listSearchInfo = listSearchInfo;
     }
 }

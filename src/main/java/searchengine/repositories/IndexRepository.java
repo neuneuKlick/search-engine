@@ -16,4 +16,8 @@ public interface IndexRepository extends JpaRepository<IndexModel, Integer> {
 
     IndexModel findByLemmaAndPage(LemmaModel lemma, PageModel page);
 
+    Set<IndexModel> findAllByLemmaAndPageIn(LemmaModel lemmaModel, Set<PageModel> pages);
+
+    Set<IndexModel> findAllByPageAndLemmaIn(PageModel pageModel, Set<LemmaModel> lemmas);
+
 }

@@ -16,7 +16,7 @@ import searchengine.services.StatisticsService;
 
 @RestController
 @RequestMapping("/api")
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class ApiController {
 
     private final StatisticsService statisticsService;
@@ -44,11 +44,13 @@ public class ApiController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<SearchResponse> search(
-            @RequestParam final String query,
-            @RequestParam(required = false) final String site,
-            @RequestParam final int offset,
-            @RequestParam final int limit) {
+    public  ResponseEntity<SearchResponse> search(@RequestParam(name = "query", defaultValue = "") String query,
+                                                  @RequestParam(name = "site", defaultValue = "") String site,
+                                                  @RequestParam(name = "offset", defaultValue = "0") int offset,
+                                                  @RequestParam(name = "limit", defaultValue = "20") int limit) {
+        if (query.isEmpty()) {
+            return ResponseEntity.ok(new SearchResponse(false, "Задан пустой поисковый запрос"));
+        }
         return ResponseEntity.ok(searchService.searchResults(query, site, offset, limit));
     }
 }
