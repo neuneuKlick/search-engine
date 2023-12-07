@@ -13,20 +13,11 @@ import java.util.Set;
 
 @Repository
 public interface LemmaRepository extends JpaRepository<LemmaModel, Integer> {
-    LemmaModel findByLemmaAndSite(String lemma, SiteModel siteModel);
 
     Optional<LemmaModel> findBySiteAndLemma(SiteModel site, String name);
-
-    @Query("select a from LemmaModel as a where a.frequency < 300" +
-            " and a.lemma in (:lemmas) " +
-            " and a.site=:site")
-    List<LemmaModel> selectLemmasBySite(Set<String> lemmas, SiteModel site);
 
     Set<LemmaModel> findAllBySite(SiteModel site);
 
     List<Optional<LemmaModel>> findByLemma(String lemma);
-
-    Integer countBySite(SiteModel site);
-
 
 }

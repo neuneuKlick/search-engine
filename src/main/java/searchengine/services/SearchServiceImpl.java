@@ -16,17 +16,11 @@ import searchengine.model.PageModel;
 import searchengine.model.SiteModel;
 import searchengine.repositories.IndexRepository;
 import searchengine.repositories.LemmaRepository;
-import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
-
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static searchengine.services.UrlFormatter.getShortUrl;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -85,7 +79,7 @@ public class SearchServiceImpl implements SearchService {
                 SearchInfo instance = new SearchInfo();
                 instance.setSite(pageRelevanceEntry.getKey().getSite().getUrl());
                 instance.setSiteName(pageRelevanceEntry.getKey().getSite().getName());
-                instance.setUrl(pageRelevanceEntry.getKey().getPath());
+                instance.setUri(pageRelevanceEntry.getKey().getPath());
                 instance.setTitle(title);
                 instance.setSnippet(snippet);
                 instance.setRelevance(pageRelevanceEntry.getValue());
@@ -186,14 +180,6 @@ public class SearchServiceImpl implements SearchService {
                         LinkedHashMap::new));
     }
 
-    private List<SiteModel> getSiteModels(String urlSite) {
-        if (urlSite == null) {
-            return siteRepository.findAll();
-        } else {
-            return Collections.singletonList(siteRepository.findByUrl(urlSite));
-        }
-    }
-
     private Map<PageModel, Double> getRelevantPages(Set<PageModel> pageModels, Set<LemmaModel> sortedLemmas) {
         List<PageModel> pageList = pageModels.stream().toList();
         Map<PageModel, Set<Float>> ranksPerPage = new HashMap<>();
@@ -213,7 +199,6 @@ public class SearchServiceImpl implements SearchService {
             absoluteRelevantPages.put(ranksValue.getKey(), sum);
         }
         Map<PageModel, Integer> sortReversedPagesByValues = getSortReversedPagesByValues(absoluteRelevantPages);
-
         Map<PageModel, Double> relRel = new HashMap<>();
         int maxRankValue = sortReversedPagesByValues.values().stream()
                 .max(Comparator.comparing(Integer::intValue)).get();
@@ -235,16 +220,16 @@ public class SearchServiceImpl implements SearchService {
                         LinkedHashMap::new));
     }
 
-    private List<SearchInfo> subList(List<SearchInfo> searchData, Integer offset, Integer limit) {
+    private List<SearchInfo> subList(List<SearchInfo> searchInfo, Integer offset, Integer limit) {
         int fromIndex = offset;
         int toIndex = fromIndex + limit;
 
-        if (toIndex > searchData.size()) {
-            toIndex = searchData.size();
+        if (toIndex > searchInfo.size()) {
+            toIndex = searchInfo.size();
         }
         if (fromIndex > toIndex) {
             return List.of();
         }
-        return searchData.subList(fromIndex, toIndex);
+        return searchInfo.subList(fromIndex, toIndex);
     }
 }

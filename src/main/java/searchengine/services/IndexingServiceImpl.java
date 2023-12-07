@@ -42,14 +42,12 @@ public class IndexingServiceImpl implements IndexingService {
     private final IndexRepository indexRepository;
     private final LemmaServiceImpl lemmaService;
 
-
     @Override
     public IndexingResponse startIndexing() {
         if (siteRepository.existsBySiteStatus(SiteStatus.INDEXING)) {
             return new IndexingResponse(false, "Индексация уже запущена");
         }
         List<Site> sitesList = sites.getSites();
-
         deleteSites();
 
         for (Site site : sitesList) {

@@ -4,12 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
-
 @Data
 public class SearchInfo {
     private String site;
     private String siteName;
-    private String url;
+    private String uri;
     private String title;
     private String snippet;
     private double relevance;

@@ -13,16 +13,11 @@ import java.util.Set;
 public interface SiteRepository extends JpaRepository<SiteModel, Integer> {
 
 
-    SiteModel findByUrl(String url);
-
     boolean existsByIdAndSiteStatus(Integer id, SiteStatus status);
 
     boolean existsBySiteStatus(SiteStatus status);
 
     Set<SiteModel> findAllBySiteStatus(SiteStatus status);
-
-    @Query("select e.lastError  from SiteModel as e where e.url=:url")
-    String findErrorByUrl(String url);
 
     boolean existsBySiteStatusNot(SiteStatus status);
 

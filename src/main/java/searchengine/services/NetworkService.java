@@ -20,8 +20,6 @@ import java.util.stream.Collectors;
 public class NetworkService {
 
     private final JsoupConfig jsoupConfig;
-    private static final Random random = new Random();
-    private final SitesList sitesList;
 
     public PageInfo getPageInfo(String url) throws IOException, InterruptedException {
         Connection.Response response = getResponse(url);
@@ -29,8 +27,7 @@ public class NetworkService {
     }
 
     private Connection.Response getResponse(String url) throws IOException, InterruptedException {
-        Thread.sleep(jsoupConfig.getTimeoutMin() + Math.abs(random.nextInt()) %
-                jsoupConfig.getTimeoutMax() - jsoupConfig.getTimeoutMin());
+        Thread.sleep(500);
 
         return Jsoup.connect(url)
                 .maxBodySize(0)
@@ -50,21 +47,6 @@ public class NetworkService {
 
     public String htmlToText(String content) {
         return Jsoup.parse(content).text();
-    }
-    public Boolean isAvailableContent(Connection.Response response) {
-        return ((response != null)
-                && (response.contentType().equalsIgnoreCase(sitesList.getContentType())
-                && (response.statusCode() == HttpStatus.OK.value())));
-    }
-
-    public Connection.Response getConnection(String url) throws IOException {
-        return Jsoup.connect(url).
-                ignoreContentType(true).
-                userAgent(sitesList.getName())
-                .referrer(sitesList.getReferer()).
-                timeout(sitesList.getTimeout()).
-                followRedirects(false).
-                execute();
     }
 
     public String getTitle(String content) {
