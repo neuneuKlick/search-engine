@@ -1,15 +1,11 @@
 package searchengine.controllers;
 
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import searchengine.dto.statistics.IndexingResponse;
 import searchengine.dto.statistics.SearchResponse;
 import searchengine.dto.statistics.StatisticsResponse;
-import searchengine.services.IndexingService;
 import searchengine.services.IndexingServiceImpl;
 import searchengine.services.SearchService;
 import searchengine.services.StatisticsService;

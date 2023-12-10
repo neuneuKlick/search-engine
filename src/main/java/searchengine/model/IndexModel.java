@@ -1,8 +1,6 @@
 package searchengine.model;
 
 import lombok.*;
-import org.hibernate.annotations.Immutable;
-
 import javax.persistence.*;
 
 @Entity

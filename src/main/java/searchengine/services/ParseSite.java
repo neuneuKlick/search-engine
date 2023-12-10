@@ -3,28 +3,18 @@ package searchengine.services;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.jsoup.Connection;
-import org.jsoup.HttpStatusException;
 import org.jsoup.UnsupportedMimeTypeException;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-import searchengine.dto.statistics.IndexingResponse;
 import searchengine.dto.statistics.PageInfo;
 import searchengine.exeption.RuntimeException;
 import searchengine.model.PageModel;
 import searchengine.model.SiteModel;
 import searchengine.model.SiteStatus;
-import searchengine.repositories.IndexRepository;
-import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
-
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Slf4j

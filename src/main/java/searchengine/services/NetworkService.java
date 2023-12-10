@@ -4,14 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import searchengine.config.JsoupConfig;
-import searchengine.config.SitesList;
 import searchengine.dto.statistics.PageInfo;
-
 import java.io.IOException;
-import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 

@@ -13,7 +13,6 @@ import searchengine.repositories.IndexRepository;
 import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
-
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -21,8 +20,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.*;
-
-
 
 @Slf4j
 @RequiredArgsConstructor
@@ -116,7 +113,8 @@ public class IndexingServiceImpl implements IndexingService {
             return new IndexingResponse(false, "Страница не найдена");
         }
         log.warn("Сайт не найден: {}", siteUrl);
-        return new IndexingResponse(false,"Данная страница находится за пределами сайтов, указанных в конфигурационном файле");
+        return new IndexingResponse(false,"Данная страница находится за пределами сайтов, " +
+                "указанных в конфигурационном файле");
     }
 
     private void deleteSites() {
@@ -171,7 +169,8 @@ public class IndexingServiceImpl implements IndexingService {
     }
 
     private void indexed(int siteId) {
-        SiteModel siteModel = siteRepository.findById(siteId).orElseThrow(()-> new IllegalStateException("Site not found"));
+        SiteModel siteModel = siteRepository.findById(siteId)
+                .orElseThrow(()-> new IllegalStateException("Site not found"));
         siteModel.setSiteStatus(SiteStatus.INDEXED);
         siteRepository.save(siteModel);
         log.info("Indexing finished");

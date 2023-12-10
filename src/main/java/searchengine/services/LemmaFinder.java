@@ -1,23 +1,20 @@
 package searchengine.services;
-
 import lombok.extern.slf4j.Slf4j;
 import org.apache.lucene.morphology.LuceneMorphology;
 import org.apache.lucene.morphology.russian.RussianLuceneMorphology;
 import org.springframework.stereotype.Component;
-
-import javax.persistence.Column;
 import java.io.IOException;
 import java.util.*;
 
 @Slf4j
 @Component
 public class LemmaFinder {
-    private final LuceneMorphology luceneMorphology = new RussianLuceneMorphology();;
+    private final LuceneMorphology luceneMorphology;
     private static final String WORD_TYPE_REGEX = "\\W\\w&&[^а-яА-Я\\s]";
     private static final String[] particlesNames = new String[]{"МЕЖД", "ПРЕДЛ", "СОЮЗ"};
 
     public LemmaFinder() throws IOException {
-
+        this.luceneMorphology = new RussianLuceneMorphology();
     }
 
     /**

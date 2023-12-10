@@ -143,7 +143,7 @@ public class SearchServiceImpl implements SearchService {
                 URL gotUrl = new URL(query);
                 siteUrl = gotUrl.getProtocol() + "://" + gotUrl.getHost() + "/";
             } catch (MalformedURLException e) {
-                log.error("Error at parsing url, ", e);
+                log.error("Ошибка парсинга по url, ", e);
                 throw new RuntimeException(e.getMessage());
             }
 
