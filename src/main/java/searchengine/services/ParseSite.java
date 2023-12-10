@@ -1,6 +1,7 @@
 package searchengine.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Connection;
 import org.jsoup.HttpStatusException;
@@ -10,6 +11,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import searchengine.dto.statistics.IndexingResponse;
 import searchengine.dto.statistics.PageInfo;
+import searchengine.exeption.RuntimeException;
 import searchengine.model.PageModel;
 import searchengine.model.SiteModel;
 import searchengine.model.SiteStatus;
@@ -36,6 +38,7 @@ public class ParseSite extends RecursiveAction {
     private final LemmaServiceImpl lemmaService;
     private final boolean isAction;
 
+    @SneakyThrows
     @Override
     protected void compute() {
         if (isNotFailed(siteId) && isNotVisited(siteId, url)) {
@@ -62,11 +65,13 @@ public class ParseSite extends RecursiveAction {
                     log.info("Сайт закончил индексацию");
                 }
 
-            } catch (UnsupportedMimeTypeException ignore) {
+            } catch (UnsupportedMimeTypeException e) {
+                throw new RuntimeException(e.getMessage());
             } catch (Exception e) {
                 log.error("Exception: ", e);
                 failed(siteId, "Ошибка парсинга URL: " + getSiteModel(siteId).getUrl() + url);
                 lemmaService.updateLemmasFrequency(siteId);
+                throw new RuntimeException(e.getMessage());
             }
         }
     }

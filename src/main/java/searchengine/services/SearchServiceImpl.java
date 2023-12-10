@@ -1,15 +1,11 @@
 package searchengine.services;
 
-import com.sun.istack.NotNull;
-import com.sun.istack.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.lucene.morphology.Morphology;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import org.springframework.stereotype.Service;
 import searchengine.dto.statistics.SearchInfo;
 import searchengine.dto.statistics.SearchResponse;
+import searchengine.exeption.RuntimeException;
 import searchengine.model.IndexModel;
 import searchengine.model.LemmaModel;
 import searchengine.model.PageModel;
@@ -37,6 +33,7 @@ public class SearchServiceImpl implements SearchService {
         log.info("Search for: " + query);
         Map<String, Integer> lemmasFromLemmaFinder = lemmaFinder.collectLemmas(query);
         Map<LemmaModel, Integer> lemmaModels = getLemmaModels(urlSite, lemmasFromLemmaFinder);
+        assert lemmaModels != null;
         Map<LemmaModel, Integer> sortedLemmas = getSortedLemmas(lemmaModels);
         Set<PageModel> pageModels = getPageModels(sortedLemmas.keySet());
 
@@ -147,6 +144,7 @@ public class SearchServiceImpl implements SearchService {
                 siteUrl = gotUrl.getProtocol() + "://" + gotUrl.getHost() + "/";
             } catch (MalformedURLException e) {
                 log.error("Error at parsing url, ", e);
+                throw new RuntimeException(e.getMessage());
             }
 
             Optional<SiteModel> optional = siteRepository.findByUrlIgnoreCase(siteUrl);

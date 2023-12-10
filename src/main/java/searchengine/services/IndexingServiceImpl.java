@@ -1,17 +1,13 @@
 package searchengine.services;
 
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.jsoup.Connection;
-import org.jsoup.nodes.Document;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import searchengine.config.Site;
 import searchengine.config.SitesList;
 import searchengine.dto.statistics.IndexingResponse;
 import searchengine.dto.statistics.PageInfo;
+import searchengine.exeption.RuntimeException;
 import searchengine.model.*;
 import searchengine.repositories.IndexRepository;
 import searchengine.repositories.LemmaRepository;
@@ -22,11 +18,10 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.*;
-import java.util.regex.Pattern;
+
 
 
 @Slf4j
@@ -158,13 +153,15 @@ public class IndexingServiceImpl implements IndexingService {
             pageRepository.delete(page);
         }
     }
+
     private void parsePage(SiteModel site, String path) {
         PageInfo pageInfo;
         try {
             pageInfo = networkService.getPageInfo(site.getUrl() + path);
         } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException(e.getMessage());
         }
+
         pageRepository.save(PageModel.builder()
                 .site(site)
                 .path(path)
