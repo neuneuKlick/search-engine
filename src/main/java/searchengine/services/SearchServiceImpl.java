@@ -43,7 +43,7 @@ public class SearchServiceImpl implements SearchService {
             List<SearchInfo> subInfo = subList(organizedSearch, offset, limit);
             return new SearchResponse(true, organizedSearch.size(), subInfo);
         }
-        return new SearchResponse(false, "Указанная страница не найдена");
+        return new SearchResponse(false, "Запрос не найден");
     }
 
     private Set<PageModel> getPageModels(Set<LemmaModel> sortedLemmas) {
@@ -88,12 +88,13 @@ public class SearchServiceImpl implements SearchService {
     }
 
     private String correctionSnippet (String query, PageModel pageModel) {
+
         String text = networkService.htmlToText(pageModel.getContent());
         List<String> searchWords = getSearchWords(text, query);
         StringBuilder snippet = new StringBuilder();
-        final int NORMAL_SIZE = 24;
-        final int SPECIAL_SIZE = 12;
-        int sideStep = searchWords.size() > 3 ? SPECIAL_SIZE : NORMAL_SIZE;
+        final int NORMAL_SIZE = 100;
+        final int SPECIAL_SIZE = 40;
+        int sideStep = searchWords.size() > 1 ? SPECIAL_SIZE : NORMAL_SIZE;
 
         for (String word : searchWords) {
 
