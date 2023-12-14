@@ -7,7 +7,7 @@ import searchengine.config.Site;
 import searchengine.config.SitesList;
 import searchengine.dto.statistics.IndexingResponse;
 import searchengine.dto.statistics.PageInfo;
-import searchengine.exeption.RuntimeException;
+import searchengine.exeption.SearchIndexingRuntimeException;
 import searchengine.model.*;
 import searchengine.repositories.IndexRepository;
 import searchengine.repositories.LemmaRepository;
@@ -157,7 +157,7 @@ public class IndexingServiceImpl implements IndexingService {
         try {
             pageInfo = networkService.getPageInfo(site.getUrl() + path);
         } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e.getMessage());
+            throw new SearchIndexingRuntimeException(e.getMessage());
         }
 
         pageRepository.save(PageModel.builder()
@@ -170,9 +170,9 @@ public class IndexingServiceImpl implements IndexingService {
 
     private void indexed(int siteId) {
         SiteModel siteModel = siteRepository.findById(siteId)
-                .orElseThrow(()-> new IllegalStateException("Site not found"));
+                .orElseThrow(()-> new IllegalStateException("Сайт не найден"));
         siteModel.setSiteStatus(SiteStatus.INDEXED);
         siteRepository.save(siteModel);
-        log.info("Indexing finished");
+        log.info("Индексация закончена");
     }
 }

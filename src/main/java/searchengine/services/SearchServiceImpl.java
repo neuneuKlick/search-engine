@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import searchengine.dto.statistics.SearchInfo;
 import searchengine.dto.statistics.SearchResponse;
-import searchengine.exeption.RuntimeException;
+import searchengine.exeption.SearchIndexingRuntimeException;
 import searchengine.model.IndexModel;
 import searchengine.model.LemmaModel;
 import searchengine.model.PageModel;
@@ -30,7 +30,7 @@ public class SearchServiceImpl implements SearchService {
 
     @Override
     public SearchResponse searchResults(String query, String urlSite, int offset, int limit) {
-        log.info("Search for: " + query);
+        log.info("Поиск запроса: " + query);
         Map<String, Integer> lemmasFromLemmaFinder = lemmaFinder.collectLemmas(query);
         Map<LemmaModel, Integer> lemmaModels = getLemmaModels(urlSite, lemmasFromLemmaFinder);
         assert lemmaModels != null;
@@ -145,7 +145,7 @@ public class SearchServiceImpl implements SearchService {
                 siteUrl = gotUrl.getProtocol() + "://" + gotUrl.getHost() + "/";
             } catch (MalformedURLException e) {
                 log.error("Ошибка парсинга по url, ", e);
-                throw new RuntimeException(e.getMessage());
+                throw new SearchIndexingRuntimeException(e.getMessage());
             }
 
             Optional<SiteModel> optional = siteRepository.findByUrlIgnoreCase(siteUrl);
