@@ -1,7 +1,6 @@
 package searchengine.services;
 
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.UnsupportedMimeTypeException;
 import searchengine.dto.statistics.PageInfo;
@@ -28,7 +27,6 @@ public class ParseSite extends RecursiveAction {
     private final LemmaServiceImpl lemmaService;
     private final boolean isAction;
 
-    @SneakyThrows
     @Override
     protected void compute() {
         if (isNotFailed(siteId) && isNotVisited(siteId, url)) {
@@ -45,7 +43,7 @@ public class ParseSite extends RecursiveAction {
                     Set<ForkJoinTask<Void>> tasks = networkService.getPaths(pageModel.getContent()).stream()
                             .map(pathFromPage -> new ParseSite(pathFromPage, siteId,
                                     siteRepository, pageRepository,
-                                    networkService,lemmaService, false).fork())
+                                    networkService, lemmaService, false).fork())
                             .collect(Collectors.toSet());
                     tasks.forEach(ForkJoinTask::join);
                 }
@@ -54,7 +52,6 @@ public class ParseSite extends RecursiveAction {
                     lemmaService.updateLemmasFrequency(siteId);
                     log.info("Сайт закончил индексацию");
                 }
-
             } catch (UnsupportedMimeTypeException e) {
                 throw new SearchIndexingRuntimeException(e.getMessage());
             } catch (Exception e) {

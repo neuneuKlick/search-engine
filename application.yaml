@@ -17,12 +17,26 @@ indexing-settings:
   sites:
     - url: http://www.playback.ru/
       name: PlayBack
-    - url: http://www.svetlovka.ru/
+    - url: https://www.svetlovka.ru/
       name: Svetlovka
+    - url: https://volochek.life/
+      name: Volochek
+    - url: https://www.lutherancathedral.ru/
+      name: Lutherancathedral
+#    - url: https://nopaper.ru/
+#      name: NoPaper
+#    - url: https://dombulgakova.ru/
+#      name: DomBulgakova
+#    - url: https://dimoonvideo.ru/
+#      name: DimonVideo
+#    - url: https://mail.ru/
+#      name: MailRu
 
 
 jsoup:
-  user_agent: searchBotProject
-  referrer: http://www.google.com
+  userAgent: Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0
+  referrer: https://ya.ru/
+  ignoreHttpErrors: true
+  followRedirects: false
   timeout_min: 50
   timeout_max: 150

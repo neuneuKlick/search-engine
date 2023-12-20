@@ -30,7 +30,7 @@ public class PageModel {
     @Column(columnDefinition = "INT", name = "code", nullable = false)
     private int codeResponse;
 
-    @Column(nullable = false, columnDefinition = "MEDIUMTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci")
+    @Column(columnDefinition = "MEDIUMTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci", nullable = false)
     private String content;
 
     @OneToMany(mappedBy = "page", cascade = CascadeType.MERGE)
