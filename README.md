@@ -18,6 +18,29 @@
 + Создайте базу данных в MySQL80 с именем search_engine
 + Установите JDK Java 17
 + В приложении в файле application.yaml укажите параметры подключения
++ Укажите токен в файле .m2/settings.xml
+```
+    <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+ https://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+<servers>
+    <server>
+      <id>skillbox-gitlab</id>
+      <configuration>
+        <httpHeaders>
+          <property>
+            <name>Private-Token</name>
+            <value>glpat-Viu1C6oUSddYB3JdKviW</value>
+          </property>
+        </httpHeaders>
+      </configuration>
+    </server>
+  </servers>
+</settings>
+
+```
 
 ## Инструкцию по работе с программой
 ### Management

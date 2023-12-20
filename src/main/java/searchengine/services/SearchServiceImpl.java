@@ -211,7 +211,7 @@ public class SearchServiceImpl implements SearchService {
 
     private Map<PageModel, Integer> getSortReversedPagesByValues(Map<PageModel, Integer> mapToSort) {
         return mapToSort.entrySet().stream()
-                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder())).limit(400)
+                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder())).limit(100)
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
                         Map.Entry::getValue,

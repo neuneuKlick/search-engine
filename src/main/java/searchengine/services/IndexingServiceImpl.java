@@ -64,7 +64,7 @@ public class IndexingServiceImpl implements IndexingService {
     @Override
     public IndexingResponse stopIndexing() {
         if (!siteRepository.existsBySiteStatus(SiteStatus.INDEXING)) {
-            return new IndexingResponse(false, "Индексация уже запущена");
+            return new IndexingResponse(false, "Индексация не запущена");
         }
         log.info("Индексация остановлена");
         siteRepository.findAllBySiteStatus(SiteStatus.INDEXING).forEach(site -> {
@@ -152,16 +152,16 @@ public class IndexingServiceImpl implements IndexingService {
         }
     }
 
-    private void parsePage(SiteModel site, String path) {
+    private void parsePage(SiteModel siteModel, String path) {
         PageInfo pageInfo;
         try {
-            pageInfo = networkService.getPageInfo(site.getUrl() + path);
+            pageInfo = networkService.getPageInfo(siteModel.getUrl() + path);
         } catch (IOException | InterruptedException e) {
             throw new SearchIndexingRuntimeException(e.getMessage());
         }
 
         pageRepository.save(PageModel.builder()
-                .site(site)
+                .site(siteModel)
                 .path(path)
                 .codeResponse(pageInfo.getStatusCode())
                 .content(pageInfo.getContent())
