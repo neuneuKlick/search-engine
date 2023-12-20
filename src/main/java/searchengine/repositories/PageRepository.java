@@ -13,6 +13,7 @@ public interface PageRepository extends JpaRepository<PageModel, Integer> {
 
     Optional<PageModel> findBySiteAndPath(SiteModel site, String url);
 
+    Integer countBySite(SiteModel site);
 
 
 }
