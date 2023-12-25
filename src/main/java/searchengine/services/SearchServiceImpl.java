@@ -31,30 +31,30 @@ public class SearchServiceImpl implements SearchService {
     @Override
     public SearchResponse searchResults(String query, String urlSite, int offset, int limit) {
         log.info("Поиск запроса: " + query);
-        Map<String, Integer> lemmasFromLemmaFinder = lemmaFinder.collectLemmas(query);
-        Map<LemmaModel, Integer> lemmaModels = getLemmaModels(urlSite, lemmasFromLemmaFinder);
-        assert lemmaModels != null;
-        Map<LemmaModel, Integer> sortedLemmas = getSortedLemmas(lemmaModels);
-        Set<PageModel> pageModels = getPageModels(sortedLemmas.keySet());
+        Map<String, Integer> lemmasFromLemmaFinder = lemmaFinder.collectLemmas(query);                  //Получение преобразованного слова
+        Map<LemmaModel, Integer> lemmaModelsAndFreq = getLemmaModelsAndFreq(urlSite, lemmasFromLemmaFinder);  //Получаем Мапу: key: "LemmaModel", value: '3710" (frequency)
+        assert lemmaModelsAndFreq != null;
+        Map<LemmaModel, Integer> sortedLemmasByFreq = getSortedLemmasByFreq(lemmaModelsAndFreq);
+        Set<PageModel> pageModels = getPageModels(sortedLemmasByFreq.keySet());     // keySet - возвращает набор уникальных ключей
 
         if (!pageModels.isEmpty()) {
-            Map<PageModel, Double> relevantPages = getRelevantPages(pageModels, sortedLemmas.keySet());
-            List<SearchInfo> organizedSearch = search(relevantPages, query);
+            Map<PageModel, Double> relevantPages = getRelevantPages(pageModels, sortedLemmasByFreq.keySet());
+            List<SearchInfo> organizedSearch = searchByRelPages(relevantPages, query);
             List<SearchInfo> subInfo = subList(organizedSearch, offset, limit);
             return new SearchResponse(true, organizedSearch.size(), subInfo);
         }
         return new SearchResponse(false, "Запрос не найден");
     }
 
-    private Set<PageModel> getPageModels(Set<LemmaModel> sortedLemmas) {
-        if (sortedLemmas.isEmpty()) {
+    private Set<PageModel> getPageModels(Set<LemmaModel> sortedLemmasByFreq) {
+        if (sortedLemmasByFreq.isEmpty()) {
             return Set.of();
         }
 
-        List<LemmaModel> lemmas = sortedLemmas.stream().toList();
-        Set<PageModel> pages = lemmas.get(0).getIndexes().stream()
-                .map(IndexModel::getPage)
-                .collect(Collectors.toSet());
+        List<LemmaModel> lemmas = sortedLemmasByFreq.stream().toList();
+        Set<PageModel> pages = lemmas.get(0).getIndexes().stream()  // lemmas - список lemmasModel (состоит. из 3) внутри List с объектами IndexModel. Запускаем стрим по этим объектам
+                .map(IndexModel::getPage)       // Преобразуем список объектов ИндексМодел в ПейджМодел
+                .collect(Collectors.toSet());   // Собираем в Сет с объектами ПейджМодел
 
         for (int i = 1; i < lemmas.size(); i++) {
             pages = indexRepository.findAllByLemmaAndPageIn(lemmas.get(i), pages)
@@ -67,20 +67,20 @@ public class SearchServiceImpl implements SearchService {
         return pages;
     }
 
-    private List<SearchInfo> search(Map<PageModel, Double> relevantPages, String query) {
+    private List<SearchInfo> searchByRelPages(Map<PageModel, Double> relevantPages, String query) {
         List<SearchInfo> collector = new ArrayList<>();
         for (Map.Entry<PageModel, Double> pageRelevanceEntry : relevantPages.entrySet()) {
             String title = networkService.getTitle(pageRelevanceEntry.getKey().getContent());
             String snippet = correctionSnippet(query, pageRelevanceEntry.getKey());
             if (!title.isEmpty() && !snippet.isEmpty()) {
-                SearchInfo instance = new SearchInfo();
-                instance.setSite(pageRelevanceEntry.getKey().getSite().getUrl());
-                instance.setSiteName(pageRelevanceEntry.getKey().getSite().getName());
-                instance.setUri(pageRelevanceEntry.getKey().getPath());
-                instance.setTitle(title);
-                instance.setSnippet(snippet);
-                instance.setRelevance(pageRelevanceEntry.getValue());
-                collector.add(instance);
+                SearchInfo searchInfo = new SearchInfo();
+                searchInfo.setSite(pageRelevanceEntry.getKey().getSite().getUrl());
+                searchInfo.setSiteName(pageRelevanceEntry.getKey().getSite().getName());
+                searchInfo.setUri(pageRelevanceEntry.getKey().getPath());
+                searchInfo.setTitle(title);
+                searchInfo.setSnippet(snippet);
+                searchInfo.setRelevance(pageRelevanceEntry.getValue());
+                collector.add(searchInfo);
             }
         }
         log.info("{} найдено результатов", collector.size());
@@ -92,12 +92,11 @@ public class SearchServiceImpl implements SearchService {
         String text = networkService.htmlToText(pageModel.getContent());
         List<String> searchWords = getSearchWords(text, query);
         StringBuilder snippet = new StringBuilder();
-        final int NORMAL_SIZE = 100;
-        final int SPECIAL_SIZE = 40;
-        int sideStep = searchWords.size() > 1 ? SPECIAL_SIZE : NORMAL_SIZE;
+        final int byOneValue = 100;
+        final int byMoreValues = 40;
+        int sideStep = searchWords.size() > 1 ? byMoreValues : byOneValue;
 
         for (String word : searchWords) {
-
             if (text.contains(word)) {
                 int firstIndex = text.indexOf(word);
                 int lastIndex = firstIndex + word.length();
@@ -136,7 +135,7 @@ public class SearchServiceImpl implements SearchService {
         return searchWords;
     }
 
-    private Map<LemmaModel, Integer> getLemmaModels(String query, Map<String, Integer> lemmaModels) {
+    private Map<LemmaModel, Integer> getLemmaModelsAndFreq(String query, Map<String, Integer> lemmaModels) {
         Map<LemmaModel, Integer> newMap = new HashMap<>();
         if (!query.isEmpty()) {
             String siteUrl = "";
@@ -163,20 +162,20 @@ public class SearchServiceImpl implements SearchService {
         for (String lemma : lemmaModels.keySet()) {
             List<Optional<LemmaModel>> optionalLemmas = lemmaRepository.findByLemma(lemma);
             if (!optionalLemmas.isEmpty()) {
-                newMap.put(optionalLemmas.get(0).get(), optionalLemmas.get(0).get().getFrequency());
+                newMap.put(optionalLemmas.get(0).get(), optionalLemmas.get(0).get().getFrequency());    //Получаем Мапу: key: "LemmaModel", value: '3710" (frequency)
             }
         }
         return newMap;
     }
 
-    private Map<LemmaModel, Integer> getSortedLemmas(Map<LemmaModel, Integer> mapToSort) {
+    private Map<LemmaModel, Integer> getSortedLemmasByFreq(Map<LemmaModel, Integer> mapToSort) {
         return mapToSort.entrySet().stream()
-                .sorted(Map.Entry.comparingByValue())
+                .sorted(Map.Entry.comparingByValue())   //Сортируем таблицу Леммы по частоте
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
                         Map.Entry::getValue,
                         (a, b) -> a,
-                        LinkedHashMap::new));
+                        LinkedHashMap::new));           //Сохраняем как Мапа,с теми же параметрами, но сохраняя порядок
     }
 
     private Map<PageModel, Double> getRelevantPages(Set<PageModel> pageModels, Set<LemmaModel> sortedLemmas) {
@@ -198,19 +197,19 @@ public class SearchServiceImpl implements SearchService {
             absoluteRelevantPages.put(ranksValue.getKey(), sum);
         }
         Map<PageModel, Integer> sortReversedPagesByValues = getSortReversedPagesByValues(absoluteRelevantPages);
-        Map<PageModel, Double> relRel = new HashMap<>();
+        Map<PageModel, Double> relevantPages = new HashMap<>();
         int maxRankValue = sortReversedPagesByValues.values().stream()
                 .max(Comparator.comparing(Integer::intValue)).get();
 
         sortReversedPagesByValues.forEach((key, value) -> {
             double result = (double) value / maxRankValue;
-            relRel.put(key, result);
+            relevantPages.put(key, result);
         });
-        return relRel;
+        return relevantPages;
     }
 
-    private Map<PageModel, Integer> getSortReversedPagesByValues(Map<PageModel, Integer> mapToSort) {
-        return mapToSort.entrySet().stream()
+    private Map<PageModel, Integer> getSortReversedPagesByValues(Map<PageModel, Integer> absoluteRelevantPages) {
+        return absoluteRelevantPages.entrySet().stream()
                 .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder())).limit(100)
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
