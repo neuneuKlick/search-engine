@@ -31,11 +31,11 @@ public class SearchServiceImpl implements SearchService {
     @Override
     public SearchResponse searchResults(String query, String urlSite, int offset, int limit) {
         log.info("Поиск запроса: " + query);
-        Map<String, Integer> lemmasFromLemmaFinder = lemmaFinder.collectLemmas(query);                  //Получение преобразованного слова
-        Map<LemmaModel, Integer> lemmaModelsAndFreq = getLemmaModelsAndFreq(urlSite, lemmasFromLemmaFinder);  //Получаем Мапу: key: "LemmaModel", value: '3710" (frequency)
+        Map<String, Integer> lemmasFromLemmaFinder = lemmaFinder.collectLemmas(query);
+        Map<LemmaModel, Integer> lemmaModelsAndFreq = getLemmaModelsAndFreq(urlSite, lemmasFromLemmaFinder);
         assert lemmaModelsAndFreq != null;
         Map<LemmaModel, Integer> sortedLemmasByFreq = getSortedLemmasByFreq(lemmaModelsAndFreq);
-        Set<PageModel> pageModels = getPageModels(sortedLemmasByFreq.keySet());     // keySet - возвращает набор уникальных ключей
+        Set<PageModel> pageModels = getPageModels(sortedLemmasByFreq.keySet());
 
         if (!pageModels.isEmpty()) {
             Map<PageModel, Double> relevantPages = getRelevantPages(pageModels, sortedLemmasByFreq.keySet());
@@ -52,9 +52,9 @@ public class SearchServiceImpl implements SearchService {
         }
 
         List<LemmaModel> lemmas = sortedLemmasByFreq.stream().toList();
-        Set<PageModel> pages = lemmas.get(0).getIndexes().stream()  // lemmas - список lemmasModel (состоит. из 3) внутри List с объектами IndexModel. Запускаем стрим по этим объектам
-                .map(IndexModel::getPage)       // Преобразуем список объектов ИндексМодел в ПейджМодел
-                .collect(Collectors.toSet());   // Собираем в Сет с объектами ПейджМодел
+        Set<PageModel> pages = lemmas.get(0).getIndexes().stream()
+                .map(IndexModel::getPage)
+                .collect(Collectors.toSet());
 
         for (int i = 1; i < lemmas.size(); i++) {
             pages = indexRepository.findAllByLemmaAndPageIn(lemmas.get(i), pages)
@@ -162,7 +162,7 @@ public class SearchServiceImpl implements SearchService {
         for (String lemma : lemmaModels.keySet()) {
             List<Optional<LemmaModel>> optionalLemmas = lemmaRepository.findByLemma(lemma);
             if (!optionalLemmas.isEmpty()) {
-                newMap.put(optionalLemmas.get(0).get(), optionalLemmas.get(0).get().getFrequency());    //Получаем Мапу: key: "LemmaModel", value: '3710" (frequency)
+                newMap.put(optionalLemmas.get(0).get(), optionalLemmas.get(0).get().getFrequency());
             }
         }
         return newMap;
@@ -170,12 +170,12 @@ public class SearchServiceImpl implements SearchService {
 
     private Map<LemmaModel, Integer> getSortedLemmasByFreq(Map<LemmaModel, Integer> mapToSort) {
         return mapToSort.entrySet().stream()
-                .sorted(Map.Entry.comparingByValue())   //Сортируем таблицу Леммы по частоте
+                .sorted(Map.Entry.comparingByValue())
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
                         Map.Entry::getValue,
                         (a, b) -> a,
-                        LinkedHashMap::new));           //Сохраняем как Мапа,с теми же параметрами, но сохраняя порядок
+                        LinkedHashMap::new));
     }
 
     private Map<PageModel, Double> getRelevantPages(Set<PageModel> pageModels, Set<LemmaModel> sortedLemmas) {
